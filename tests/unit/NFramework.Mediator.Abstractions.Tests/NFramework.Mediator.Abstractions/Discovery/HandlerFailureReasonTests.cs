@@ -11,8 +11,8 @@ public sealed class HandlerFailureReasonTests
             typeof(InvalidHandlerFixtures.OpenGenericCommandHandler<>)
         );
 
-        Assert.False(result.IsDiscoverable);
-        Assert.Equal("Open generic handler types are not discoverable", result.FailureReason);
+        result.IsDiscoverable.ShouldBeFalse();
+        result.FailureReason.ShouldBe("Open generic handler types are not discoverable");
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public sealed class HandlerFailureReasonTests
             typeof(InvalidHandlerFixtures.MissingInterfaceCommandHandler)
         );
 
-        Assert.False(result.IsDiscoverable);
-        Assert.Equal("Type does not implement a supported handler contract", result.FailureReason);
+        result.IsDiscoverable.ShouldBeFalse();
+        result.FailureReason.ShouldBe("Type does not implement a supported handler contract");
     }
 }

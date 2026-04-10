@@ -10,7 +10,7 @@ public sealed class HandlerBoundaryTests
     {
         var results = HandlerDiscoverabilityClassifier.ClassifyAll(Array.Empty<Type>());
 
-        Assert.Empty(results);
+        results.Count.ShouldBe(0);
     }
 
     [Fact]
@@ -20,14 +20,11 @@ public sealed class HandlerBoundaryTests
             new[] { typeof(DuplicateCommandHandlerA), typeof(DuplicateCommandHandlerB) }
         );
 
-        Assert.All(
-            results,
-            result =>
-            {
-                Assert.False(result.IsDiscoverable);
-                Assert.Equal("Duplicate handler declaration", result.FailureReason);
-            }
-        );
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeFalse();
+            result.FailureReason.ShouldBe("Duplicate handler declaration");
+        }
     }
 
     [Fact]
@@ -37,7 +34,10 @@ public sealed class HandlerBoundaryTests
             new[] { typeof(DuplicateQueryHandlerA), typeof(DuplicateQueryHandlerB) }
         );
 
-        Assert.All(results, result => Assert.False(result.IsDiscoverable));
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeFalse();
+        }
     }
 
     [Fact]
@@ -47,7 +47,10 @@ public sealed class HandlerBoundaryTests
             new[] { typeof(DuplicateStreamHandlerA), typeof(DuplicateStreamHandlerB) }
         );
 
-        Assert.All(results, result => Assert.False(result.IsDiscoverable));
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeFalse();
+        }
     }
 
     private sealed class DuplicateCommandHandlerA : ICommandHandler<ValidHandlerFixtures.CreateOrderCommand, int>

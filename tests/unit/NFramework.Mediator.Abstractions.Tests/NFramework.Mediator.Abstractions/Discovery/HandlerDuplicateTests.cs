@@ -15,8 +15,11 @@ public sealed class HandlerDuplicateTests
             }
         );
 
-        Assert.All(results, result => Assert.False(result.IsDiscoverable));
-        Assert.All(results, result => Assert.Equal("Duplicate handler declaration", result.FailureReason));
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeFalse();
+            result.FailureReason.ShouldBe("Duplicate handler declaration");
+        }
     }
 
     [Fact]
@@ -30,8 +33,11 @@ public sealed class HandlerDuplicateTests
             }
         );
 
-        Assert.All(results, result => Assert.False(result.IsDiscoverable));
-        Assert.All(results, result => Assert.Equal("Duplicate handler declaration", result.FailureReason));
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeFalse();
+            result.FailureReason.ShouldBe("Duplicate handler declaration");
+        }
     }
 
     [Fact]
@@ -45,7 +51,10 @@ public sealed class HandlerDuplicateTests
             }
         );
 
-        Assert.All(results, result => Assert.False(result.IsDiscoverable));
-        Assert.All(results, result => Assert.Equal("Duplicate handler declaration", result.FailureReason));
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeFalse();
+            result.FailureReason.ShouldBe("Duplicate handler declaration");
+        }
     }
 }

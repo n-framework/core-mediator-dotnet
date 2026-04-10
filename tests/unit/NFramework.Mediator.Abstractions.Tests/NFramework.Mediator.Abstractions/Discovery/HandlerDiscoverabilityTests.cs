@@ -17,11 +17,15 @@ public sealed class HandlerDiscoverabilityTests
 
         var results = HandlerDiscoverabilityClassifier.ClassifyAll(handlerTypes);
 
-        Assert.All(results, result => Assert.True(result.IsDiscoverable));
-        Assert.Contains(results, result => result.Kind == HandlerKind.Command);
-        Assert.Contains(results, result => result.Kind == HandlerKind.Query);
-        Assert.Contains(results, result => result.Kind == HandlerKind.Stream);
-        Assert.Contains(results, result => result.Kind == HandlerKind.Event);
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeTrue();
+        }
+
+        results.ShouldContain(r => r.Kind == HandlerKind.Command);
+        results.ShouldContain(r => r.Kind == HandlerKind.Query);
+        results.ShouldContain(r => r.Kind == HandlerKind.Stream);
+        results.ShouldContain(r => r.Kind == HandlerKind.Event);
     }
 
     [Fact]
@@ -35,7 +39,10 @@ public sealed class HandlerDiscoverabilityTests
 
         var results = HandlerDiscoverabilityClassifier.ClassifyAll(handlerTypes);
 
-        Assert.All(results, result => Assert.False(result.IsDiscoverable));
-        Assert.All(results, result => Assert.False(string.IsNullOrWhiteSpace(result.FailureReason)));
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeFalse();
+            result.FailureReason.ShouldNotBeNullOrWhiteSpace();
+        }
     }
 }

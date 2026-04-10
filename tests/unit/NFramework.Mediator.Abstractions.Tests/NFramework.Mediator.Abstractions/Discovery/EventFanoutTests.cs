@@ -11,15 +11,12 @@ public sealed class EventFanoutTests
             new[] { typeof(ValidHandlerFixtures.ValidEventHandlerA), typeof(ValidHandlerFixtures.ValidEventHandlerB) }
         );
 
-        Assert.Equal(2, results.Count);
-        Assert.All(
-            results,
-            result =>
-            {
-                Assert.True(result.IsDiscoverable);
-                Assert.Equal(HandlerKind.Event, result.Kind);
-                Assert.Equal(typeof(ValidHandlerFixtures.OrderCreatedEvent), result.RequestType);
-            }
-        );
+        results.Count.ShouldBe(2);
+        foreach (var result in results)
+        {
+            result.IsDiscoverable.ShouldBeTrue();
+            result.Kind.ShouldBe(HandlerKind.Event);
+            result.RequestType.ShouldBe(typeof(ValidHandlerFixtures.OrderCreatedEvent));
+        }
     }
 }

@@ -11,19 +11,19 @@ public sealed class PublicApiContractTests
     [Fact]
     public void RequiredMarkerContracts_ArePublicInterfaces()
     {
-        Assert.True(typeof(ICommand<int>).IsInterface);
-        Assert.True(typeof(IQuery<int>).IsInterface);
-        Assert.True(typeof(IStreamQuery<int>).IsInterface);
-        Assert.True(typeof(IEvent).IsInterface);
+        typeof(ICommand<int>).IsInterface.ShouldBeTrue();
+        typeof(IQuery<int>).IsInterface.ShouldBeTrue();
+        typeof(IStreamQuery<int>).IsInterface.ShouldBeTrue();
+        typeof(IEvent).IsInterface.ShouldBeTrue();
     }
 
     [Fact]
     public void RequiredHandlerContracts_ArePublicInterfaces()
     {
-        Assert.True(typeof(ICommandHandler<ICommand<int>, int>).IsInterface);
-        Assert.True(typeof(IQueryHandler<IQuery<int>, int>).IsInterface);
-        Assert.True(typeof(IStreamQueryHandler<IStreamQuery<int>, int>).IsInterface);
-        Assert.True(typeof(IEventHandler<IEvent>).IsInterface);
+        typeof(ICommandHandler<ICommand<int>, int>).IsInterface.ShouldBeTrue();
+        typeof(IQueryHandler<IQuery<int>, int>).IsInterface.ShouldBeTrue();
+        typeof(IStreamQueryHandler<IStreamQuery<int>, int>).IsInterface.ShouldBeTrue();
+        typeof(IEventHandler<IEvent>).IsInterface.ShouldBeTrue();
     }
 
     [Fact]
@@ -35,44 +35,39 @@ public sealed class PublicApiContractTests
         AssertHandleSignature(typeof(IEventHandler<>), typeof(ValueTask));
 
         var mediatorMethods = typeof(IMediator).GetMethods();
-        Assert.All(
-            mediatorMethods,
-            method =>
-            {
-                var tokenParameter = method
-                    .GetParameters()
-                    .FirstOrDefault(parameter => parameter.ParameterType == typeof(CancellationToken));
-                Assert.NotNull(tokenParameter);
-            }
-        );
+        foreach (var method in mediatorMethods)
+        {
+            var hasToken = method.GetParameters().Any(p => p.ParameterType == typeof(CancellationToken));
+            hasToken.ShouldBeTrue();
+        }
     }
 
     [Fact]
     public void PipelineBehavior_UsesNextDelegate()
     {
         var behaviorType = typeof(IPipelineBehavior<,>);
-        Assert.True(ContractShapeInspector.HasHandleMethod(behaviorType));
+        ContractShapeInspector.HasHandleMethod(behaviorType).ShouldBeTrue();
 
         var handleMethod = behaviorType.GetMethod("Handle");
-        Assert.NotNull(handleMethod);
-        Assert.True(ContractShapeInspector.HasCancellationTokenParameter(handleMethod!));
+        handleMethod.ShouldNotBeNull();
+        ContractShapeInspector.HasCancellationTokenParameter(handleMethod!).ShouldBeTrue();
 
         var nextParameter = handleMethod!.GetParameters()[1].ParameterType;
-        Assert.Equal(typeof(RequestHandlerDelegate<>), nextParameter.GetGenericTypeDefinition());
+        nextParameter.GetGenericTypeDefinition().ShouldBe(typeof(RequestHandlerDelegate<>));
     }
 
     private static void AssertHandleSignature(Type handlerInterface, Type expectedReturnTypeDefinition)
     {
         var handleMethod = handlerInterface.GetMethod("Handle");
-        Assert.NotNull(handleMethod);
-        Assert.True(ContractShapeInspector.HasCancellationTokenParameter(handleMethod!));
+        handleMethod.ShouldNotBeNull();
+        ContractShapeInspector.HasCancellationTokenParameter(handleMethod!).ShouldBeTrue();
 
         if (expectedReturnTypeDefinition.IsGenericTypeDefinition)
         {
-            Assert.Equal(expectedReturnTypeDefinition, handleMethod!.ReturnType.GetGenericTypeDefinition());
+            handleMethod!.ReturnType.GetGenericTypeDefinition().ShouldBe(expectedReturnTypeDefinition);
             return;
         }
 
-        Assert.Equal(expectedReturnTypeDefinition, handleMethod!.ReturnType);
+        handleMethod!.ReturnType.ShouldBe(expectedReturnTypeDefinition);
     }
 }

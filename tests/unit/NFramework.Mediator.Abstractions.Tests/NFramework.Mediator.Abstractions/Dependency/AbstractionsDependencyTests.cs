@@ -6,14 +6,16 @@ public sealed class AbstractionsDependencyTests
     public void AbstractionsAssembly_DoesNotReferenceInfrastructureAssemblies()
     {
         var assembly = typeof(NFramework.Mediator.Abstractions.Contracts.IMediator).Assembly;
-
         var references = assembly.GetReferencedAssemblies();
-        Assert.DoesNotContain(
-            references,
-            reference =>
-                reference.Name is not null
-                && reference.Name.StartsWith("NFramework", StringComparison.Ordinal)
-                && !string.Equals(reference.Name, "NFramework.Mediator.Abstractions", StringComparison.Ordinal)
-        );
+
+        foreach (var reference in references)
+        {
+            var isNFramework = reference.Name != null && reference.Name.StartsWith("NFramework");
+            var isNotAbstractions = reference.Name != "NFramework.Mediator.Abstractions";
+            if (isNFramework && isNotAbstractions)
+            {
+                throw new Exception($"Abstractions should not reference other NFramework assemblies, but references: {reference.Name}");
+            }
+        }
     }
 }
