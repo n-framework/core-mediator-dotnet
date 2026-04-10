@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../tests/unit/NFramework.Mediator.Abstractions.Tests/NFramework.Mediator.Abstractions.Tests.csproj" />
+  <Project Path="NFramework.Mediator.Abstractions/NFramework.Mediator.Abstractions.csproj" />
+</Solution>

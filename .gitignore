@@ -52,3 +52,12 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+# Additional module defaults
+bin/
+obj/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
