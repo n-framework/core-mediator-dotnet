@@ -56,4 +56,32 @@ public static class ValidHandlerFixtures
             return ValueTask.CompletedTask;
         }
     }
+
+    public sealed class DuplicateCommandHandler : ICommandHandler<CreateOrderCommand, int>
+    {
+        public ValueTask<int> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
+        {
+            return ValueTask.FromResult(command.Quantity * 2);
+        }
+    }
+
+    public sealed class DuplicateQueryHandler : IQueryHandler<GetOrderQuery, string>
+    {
+        public ValueTask<string> Handle(GetOrderQuery query, CancellationToken cancellationToken)
+        {
+            return ValueTask.FromResult($"{query.OrderId}-dup");
+        }
+    }
+
+    public sealed class DuplicateStreamHandler : IStreamQueryHandler<GetOrderStreamQuery, string>
+    {
+        public async IAsyncEnumerable<string> Handle(
+            GetOrderStreamQuery query,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken
+        )
+        {
+            yield return $"{query.CustomerId}-dup";
+            await Task.CompletedTask;
+        }
+    }
 }
