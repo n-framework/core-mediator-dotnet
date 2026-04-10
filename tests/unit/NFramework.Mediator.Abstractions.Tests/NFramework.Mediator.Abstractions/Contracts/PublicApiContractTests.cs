@@ -43,6 +43,40 @@ public sealed class PublicApiContractTests
     }
 
     [Fact]
+    public void InterfaceNames_StartWithIPrefix()
+    {
+        typeof(ICommand<>).IsInterface.ShouldBeTrue();
+        typeof(ICommand<>).Name.ShouldStartWith("I");
+
+        typeof(IQuery<>).IsInterface.ShouldBeTrue();
+        typeof(IQuery<>).Name.ShouldStartWith("I");
+
+        typeof(IStreamQuery<>).IsInterface.ShouldBeTrue();
+        typeof(IStreamQuery<>).Name.ShouldStartWith("I");
+
+        typeof(IEvent).IsInterface.ShouldBeTrue();
+        typeof(IEvent).Name.ShouldStartWith("I");
+
+        typeof(ICommandHandler<,>).IsInterface.ShouldBeTrue();
+        typeof(ICommandHandler<,>).Name.ShouldStartWith("I");
+
+        typeof(IQueryHandler<,>).IsInterface.ShouldBeTrue();
+        typeof(IQueryHandler<,>).Name.ShouldStartWith("I");
+
+        typeof(IStreamQueryHandler<,>).IsInterface.ShouldBeTrue();
+        typeof(IStreamQueryHandler<,>).Name.ShouldStartWith("I");
+
+        typeof(IEventHandler<>).IsInterface.ShouldBeTrue();
+        typeof(IEventHandler<>).Name.ShouldStartWith("I");
+
+        typeof(IMediator).IsInterface.ShouldBeTrue();
+        typeof(IMediator).Name.ShouldStartWith("I");
+
+        typeof(IPipelineBehavior<,>).IsInterface.ShouldBeTrue();
+        typeof(IPipelineBehavior<,>).Name.ShouldStartWith("I");
+    }
+
+    [Fact]
     public void PipelineBehavior_UsesNextDelegate()
     {
         var behaviorType = typeof(IPipelineBehavior<,>);
