@@ -3,27 +3,24 @@
 ## Prerequisites
 
 - .NET 11 SDK preview
-- Repository initialized at `/home/ac/Code/n-framework`
+- Repository initialized at root of this package
 
 ## Build
 
 ```bash
-cd /home/ac/Code/n-framework/src/core-mediator-dotnet
-dotnet build src/NFramework.Mediator.slnx
+dotnet build src/NFramework.Mediator.Abstractions/NFramework.Mediator.Abstractions.csproj
 ```
 
 ## Test
 
 ```bash
-cd /home/ac/Code/n-framework/src/core-mediator-dotnet
-dotnet test src/NFramework.Mediator.slnx
+dotnet test tests/unit/NFramework.Mediator.Abstractions.Tests/NFramework.Mediator.Abstractions.Tests.csproj
 ```
 
 ## Inspect package and test layout
 
 ```bash
-cd /home/ac/Code/n-framework/src/core-mediator-dotnet
-ls -la src/NFramework.Mediator.slnx src/Directory.Build.props
+ls -la src/ tests/
 find src/NFramework.Mediator.Abstractions -maxdepth 3 -type f | sort
 find tests/unit/NFramework.Mediator.Abstractions.Tests -maxdepth 4 -type f | sort
 ```
@@ -31,7 +28,6 @@ find tests/unit/NFramework.Mediator.Abstractions.Tests -maxdepth 4 -type f | sor
 ## Verify specification artifacts
 
 ```bash
-cd /home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions
 ls -la spec.md plan.md research.md data-model.md quickstart.md contracts/
 ```
 

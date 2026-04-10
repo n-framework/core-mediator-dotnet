@@ -52,7 +52,10 @@ public sealed class PublicApiContractTests
         handleMethod.ShouldNotBeNull();
         ContractShapeInspector.HasCancellationTokenParameter(handleMethod!).ShouldBeTrue();
 
-        var nextParameter = handleMethod!.GetParameters()[1].ParameterType;
+        var parameters = handleMethod!.GetParameters();
+        (parameters.Length >= 2).ShouldBeTrue();
+        var nextParameter = parameters[1].ParameterType;
+        nextParameter.IsGenericType.ShouldBeTrue();
         nextParameter.GetGenericTypeDefinition().ShouldBe(typeof(RequestHandlerDelegate<>));
     }
 
@@ -64,6 +67,7 @@ public sealed class PublicApiContractTests
 
         if (expectedReturnTypeDefinition.IsGenericTypeDefinition)
         {
+            handleMethod!.ReturnType.IsGenericType.ShouldBeTrue();
             handleMethod!.ReturnType.GetGenericTypeDefinition().ShouldBe(expectedReturnTypeDefinition);
             return;
         }

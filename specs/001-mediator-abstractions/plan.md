@@ -1,7 +1,7 @@
 # Implementation Plan: Mediator Abstractions Package
 
-**Branch**: `001-mediator-abstractions` (module-local spec planning on root `main`) | **Date**: 2026-04-10 | **Spec**: [/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/spec.md](/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/spec.md)
-**Input**: Feature specification from `/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/spec.md`
+**Branch**: `001-mediator-abstractions` (module-local spec planning on root `main`) | **Date**: 2026-04-10 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from [spec.md](spec.md)
 
 ## Summary
 
@@ -80,15 +80,15 @@ src/core-mediator-dotnet/
 
 ## Phase 0: Research Output
 
-Research results are captured in [/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/research.md](/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/research.md).
+Research results are captured in [research.md](research.md).
 
 ## Phase 1: Design Output
 
-- Data model: [/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/data-model.md](/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/data-model.md)
+- Data model: [data-model.md](data-model.md)
 - Contracts:
-  - [/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/contracts/public-api-contract.md](/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/contracts/public-api-contract.md)
-  - [/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/contracts/discovery-test-contract.md](/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/contracts/discovery-test-contract.md)
-- Quickstart: [/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/quickstart.md](/home/ac/Code/n-framework/src/core-mediator-dotnet/specs/001-mediator-abstractions/quickstart.md)
+  - [contracts/public-api-contract.md](contracts/public-api-contract.md)
+  - [contracts/discovery-test-contract.md](contracts/discovery-test-contract.md)
+- Quickstart: [quickstart.md](quickstart.md)
 
 ## Complexity Tracking
 

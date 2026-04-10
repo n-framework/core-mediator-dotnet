@@ -6,9 +6,8 @@ internal static class ContractShapeInspector
 {
     public static bool HasHandleMethod(Type contractType)
     {
-        return contractType
-            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Any(method => method.Name == "Handle");
+        var methods = contractType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+        return methods != null && methods.Any(method => method.Name == "Handle");
     }
 
     public static bool HasCancellationTokenParameter(MethodInfo method)
