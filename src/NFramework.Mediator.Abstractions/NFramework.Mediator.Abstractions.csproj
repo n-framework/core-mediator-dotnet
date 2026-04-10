@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <AssemblyName>NFramework.Mediator.Abstractions</AssemblyName>
+    <RootNamespace>NFramework.Mediator.Abstractions</RootNamespace>
+    <Description>Contract-only mediator abstractions for CQRS flows in NFramework.</Description>
+    <PackageId>NFramework.Mediator.Abstractions</PackageId>
+    <PackageTags>mediator;cqrs;abstractions;nframework</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+</Project>
