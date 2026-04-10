@@ -1,3 +1,3 @@
 namespace NFramework.Mediator.Abstractions.Contracts.Requests;
 
-public interface IEvent;
+public interface IQuery<TResult>;

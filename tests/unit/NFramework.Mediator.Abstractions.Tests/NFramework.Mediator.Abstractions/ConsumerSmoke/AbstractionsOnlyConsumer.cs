@@ -62,14 +62,4 @@ internal static class AbstractionsOnlyConsumer
             return next(cancellationToken);
         }
     }
-
-    public static async Task ExerciseMediatorAsync(IMediator mediator, CancellationToken cancellationToken)
-    {
-        var customerId = await mediator.SendAsync(new CreateCustomerCommand("name"), cancellationToken);
-        _ = await mediator.SendAsync(new GetCustomerQuery(customerId), cancellationToken);
-
-        await foreach (string? _ in mediator.StreamAsync(new ListCustomerNamesQuery(), cancellationToken)) { }
-
-        await mediator.PublishAsync(new CustomerCreated(customerId), cancellationToken);
-    }
 }
