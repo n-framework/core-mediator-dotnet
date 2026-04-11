@@ -11,7 +11,7 @@ public sealed class HandlerDuplicateTests
             new[]
             {
                 typeof(ValidHandlerFixtures.ValidCommandHandler),
-                typeof(ValidHandlerFixtures.DuplicateCommandHandler)
+                typeof(ValidHandlerFixtures.DuplicateCommandHandler),
             }
         );
 
@@ -26,11 +26,7 @@ public sealed class HandlerDuplicateTests
     public void ClassifyAll_DuplicateQueryHandlers_AreNotDiscoverable()
     {
         var results = HandlerDiscoverabilityClassifier.ClassifyAll(
-            new[]
-            {
-                typeof(ValidHandlerFixtures.ValidQueryHandler),
-                typeof(ValidHandlerFixtures.DuplicateQueryHandler)
-            }
+            new[] { typeof(ValidHandlerFixtures.ValidQueryHandler), typeof(ValidHandlerFixtures.DuplicateQueryHandler) }
         );
 
         foreach (var result in results)
@@ -47,7 +43,7 @@ public sealed class HandlerDuplicateTests
             new[]
             {
                 typeof(ValidHandlerFixtures.ValidStreamHandler),
-                typeof(ValidHandlerFixtures.DuplicateStreamHandler)
+                typeof(ValidHandlerFixtures.DuplicateStreamHandler),
             }
         );
 

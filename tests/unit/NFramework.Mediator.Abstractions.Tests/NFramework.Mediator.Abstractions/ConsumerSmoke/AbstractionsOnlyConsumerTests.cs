@@ -7,6 +7,6 @@ public sealed class AbstractionsOnlyConsumerTests
     {
         var consumerType = typeof(AbstractionsOnlyConsumer);
 
-        consumerType.ShouldNotBeNull();
+        _ = consumerType.ShouldNotBeNull();
     }
 }
