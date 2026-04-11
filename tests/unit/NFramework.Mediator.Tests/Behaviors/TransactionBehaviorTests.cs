@@ -48,7 +48,7 @@ public sealed class TransactionBehaviorTests
     {
         var transactionScope = new FakeTransactionScope
         {
-            CommitException = new InvalidOperationException("commit failed")
+            CommitException = new InvalidOperationException("commit failed"),
         };
         var behavior = new TransactionBehavior<TestRequest, string>(
             new FakeTransactionScopeFactory(transactionScope),

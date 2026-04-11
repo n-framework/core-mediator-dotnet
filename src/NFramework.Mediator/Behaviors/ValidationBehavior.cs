@@ -76,13 +76,13 @@ public sealed class ValidationBehavior<TRequest, TResponse> : global::Mediator.I
         if (_failureResponseFactory is null)
         {
             throw new InvalidOperationException(
-                $"Validation failed for '{typeof(TRequest).FullName}', but no {nameof(IValidationFailureResponseFactory<TResponse>)} is registered for '{typeof(TResponse).FullName}'.\n" +
-                $"Registration example:\n" +
-                $"  services.AddMediator(options =>\n" +
-                $"  {{\n" +
-                $"      options.BehaviorOptions.UseValidation();\n" +
-                $"      services.AddTransient<IValidationFailureResponseFactory<{typeof(TResponse).FullName}>, YourResponseFactory>();\n" +
-                $"  }});"
+                $"Validation failed for '{typeof(TRequest).FullName}', but no {nameof(IValidationFailureResponseFactory<TResponse>)} is registered for '{typeof(TResponse).FullName}'.\n"
+                    + $"Registration example:\n"
+                    + $"  services.AddMediator(options =>\n"
+                    + $"  {{\n"
+                    + $"      options.BehaviorOptions.UseValidation();\n"
+                    + $"      services.AddTransient<IValidationFailureResponseFactory<{typeof(TResponse).FullName}>, YourResponseFactory>();\n"
+                    + $"  }});"
             );
         }
 

@@ -50,7 +50,9 @@ public sealed class MediatorAdapterTests
 
         var action = async () => await adapter.SendAsync<int>(new CreateOrderCommand());
 
-        _ = await action.Should().ThrowAsync<InvalidOperationException>()
+        _ = await action
+            .Should()
+            .ThrowAsync<InvalidOperationException>()
             .WithMessage("*type mismatch*Expected*received*");
     }
 
@@ -62,22 +64,18 @@ public sealed class MediatorAdapterTests
 
         var action = async () => await adapter.SendAsync<int>(new CreateOrderCommand());
 
-        _ = await action.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*type mismatch*received*null*");
+        _ = await action.Should().ThrowAsync<InvalidOperationException>().WithMessage("*type mismatch*received*null*");
     }
 
     [Fact]
     public async Task StreamAsync_ShouldReturnItems_WhenTypesMatch()
     {
-        var items = new[] { "item1", "item2", "item3" };
-        var mediator = new TestDoubles.FakeMediator(
-            sendHandler: _ => 1,
-            streamHandler: _ => items.ToAsyncEnumerable()
-        );
+        string[] items = ["item1", "item2", "item3"];
+        var mediator = new TestDoubles.FakeMediator(sendHandler: _ => 1, streamHandler: _ => items.ToAsyncEnumerable());
         var adapter = new global::NFramework.Mediator.MediatorAdapter(mediator);
 
         var results = new List<string>();
-        await foreach (var item in adapter.StreamAsync<string>(new GetItemsStreamQuery()))
+        await foreach (string item in adapter.StreamAsync<string>(new GetItemsStreamQuery()))
         {
             results.Add(item);
         }
@@ -89,21 +87,18 @@ public sealed class MediatorAdapterTests
     [Fact]
     public async Task StreamAsync_ShouldThrow_WhenItemTypeMismatch()
     {
-        var items = new object[] { "wrong", "types" };
-        var mediator = new TestDoubles.FakeMediator(
-            sendHandler: _ => 1,
-            streamHandler: _ => items.ToAsyncEnumerable()
-        );
+        object[] items = ["wrong", "types"];
+        var mediator = new TestDoubles.FakeMediator(sendHandler: _ => 1, streamHandler: _ => items.ToAsyncEnumerable());
         var adapter = new global::NFramework.Mediator.MediatorAdapter(mediator);
 
         var action = async () =>
         {
-            await foreach (var _ in adapter.StreamAsync<int>(new GetIntStreamQuery()))
-            {
-            }
+            await foreach (int _ in adapter.StreamAsync<int>(new GetIntStreamQuery())) { }
         };
 
-        _ = await action.Should().ThrowAsync<InvalidOperationException>()
+        _ = await action
+            .Should()
+            .ThrowAsync<InvalidOperationException>()
             .WithMessage("*type mismatch*Expected*received*");
     }
 

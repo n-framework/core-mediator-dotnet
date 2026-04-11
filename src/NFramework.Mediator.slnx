@@ -3,4 +3,6 @@
   <Project Path="../tests/unit/NFramework.Mediator.Abstractions.Tests/NFramework.Mediator.Abstractions.Tests.csproj" />
   <Project Path="NFramework.Mediator/NFramework.Mediator.csproj" />
   <Project Path="NFramework.Mediator.Abstractions/NFramework.Mediator.Abstractions.csproj" />
+  <Project Path="NFramework.Mediator.Generators/NFramework.Mediator.Generators.csproj" />
+  <Project Path="../tests/unit/NFramework.Mediator.Generators.Tests/NFramework.Mediator.Generators.Tests.csproj" />
 </Solution>

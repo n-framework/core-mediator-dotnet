@@ -60,11 +60,11 @@ public sealed class MediatorAdapter : IMediator
         return result is TResult typed
             ? typed
             : throw new InvalidOperationException(
-                $"Mediator result type mismatch. Expected '{typeof(TResult).FullName}', received '{result?.GetType().FullName ?? "null"}'.\n" +
-                $"Troubleshooting:\n" +
-                $"  1. Verify your handler returns the correct type: ICommandHandler<TCommand, TResult> or IQuery<TQuery, TResult>\n" +
-                $"  2. Check that the command/query type in your request matches the registered handler\n" +
-                $"  3. Ensure your handler is registered in the DI container"
+                $"Mediator result type mismatch. Expected '{typeof(TResult).FullName}', received '{result?.GetType().FullName ?? "null"}'.\n"
+                    + $"Troubleshooting:\n"
+                    + $"  1. Verify your handler returns the correct type: ICommandHandler<TCommand, TResult> or IQuery<TQuery, TResult>\n"
+                    + $"  2. Check that the command/query type in your request matches the registered handler\n"
+                    + $"  3. Ensure your handler is registered in the DI container"
             );
     }
 
@@ -82,11 +82,11 @@ public sealed class MediatorAdapter : IMediator
             }
 
             throw new InvalidOperationException(
-                $"Mediator stream item type mismatch. Expected '{typeof(TResult).FullName}', received '{item?.GetType().FullName ?? "null"}'.\n" +
-                $"Troubleshooting:\n" +
-                $"  1. Verify your stream query handler returns the correct type: IStreamQueryHandler<TStreamQuery, TResult>\n" +
-                $"  2. Check that the stream query type matches the registered handler\n" +
-                $"  3. Ensure your stream query handler is registered in the DI container"
+                $"Mediator stream item type mismatch. Expected '{typeof(TResult).FullName}', received '{item?.GetType().FullName ?? "null"}'.\n"
+                    + $"Troubleshooting:\n"
+                    + $"  1. Verify your stream query handler returns the correct type: IStreamQueryHandler<TStreamQuery, TResult>\n"
+                    + $"  2. Check that the stream query type matches the registered handler\n"
+                    + $"  3. Ensure your stream query handler is registered in the DI container"
             );
         }
     }

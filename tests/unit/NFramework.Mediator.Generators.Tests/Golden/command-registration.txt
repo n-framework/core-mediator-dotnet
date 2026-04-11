@@ -1,0 +1,12 @@
+using Microsoft.Extensions.DependencyInjection;
+
+namespace NFramework.Mediator.Generated;
+
+public static class MediatorGeneratedServiceCollectionExtensions
+{
+    public static IServiceCollection AddMediatorGeneratedHandlers(this IServiceCollection services)
+    {
+        _ = services.AddTransient<global::NFramework.Mediator.Abstractions.Contracts.Handlers.ICommandHandler<global::CreateOrderCommand, int>, global::CreateOrderHandler>();
+        return services;
+    }
+}

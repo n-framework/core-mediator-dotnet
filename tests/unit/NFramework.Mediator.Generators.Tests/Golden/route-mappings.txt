@@ -1,0 +1,18 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using System.Threading;
+using NFramework.Mediator.Abstractions.Contracts;
+
+namespace NFramework.Mediator.Generated;
+
+public static class MediatorGeneratedRouteMappings
+{
+    public static IEndpointRouteBuilder MapMediatorGeneratedRoutes(this IEndpointRouteBuilder app)
+    {
+        _ = app.MapPost("/api/create-orders", async (global::CreateOrderCommand request, IMediator mediator, CancellationToken ct) =>
+            await mediator.SendAsync(request, ct));
+        _ = app.MapGet("/api/get-orders", async (global::GetOrderQuery request, IMediator mediator, CancellationToken ct) =>
+            await mediator.SendAsync(request, ct));
+        return app;
+    }
+}

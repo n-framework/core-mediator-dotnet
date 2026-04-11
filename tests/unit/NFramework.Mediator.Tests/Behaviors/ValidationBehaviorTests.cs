@@ -70,13 +70,16 @@ public sealed class ValidationBehaviorTests
             new FakeRequestPipelinePolicyProvider()
         );
 
-        var action = async () => await behavior.Handle(
-            new TestRequest("bad"),
-            (_, _) => ValueTask.FromResult(new TestResponse(false, [])),
-            default
-        );
+        var action = async () =>
+            await behavior.Handle(
+                new TestRequest("bad"),
+                (_, _) => ValueTask.FromResult(new TestResponse(false, [])),
+                default
+            );
 
-        _ = await action.Should().ThrowAsync<InvalidOperationException>()
+        _ = await action
+            .Should()
+            .ThrowAsync<InvalidOperationException>()
             .WithMessage("*Validation failed*no*IValidationFailureResponseFactory*");
     }
 

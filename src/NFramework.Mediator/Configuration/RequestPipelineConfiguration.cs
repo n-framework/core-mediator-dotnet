@@ -30,12 +30,13 @@ public sealed class RequestPipelineConfigurationBuilder
     private bool _useValidation;
     private bool _useTransaction;
 
-    internal RequestPipelineConfiguration Build() => new()
-    {
-        UseLogging = _useLogging,
-        UseValidation = _useValidation,
-        UseTransaction = _useTransaction
-    };
+    internal RequestPipelineConfiguration Build() =>
+        new()
+        {
+            UseLogging = _useLogging,
+            UseValidation = _useValidation,
+            UseTransaction = _useTransaction,
+        };
 
     /// <summary>
     /// Enables logging behavior for the request pipeline.
@@ -108,19 +109,19 @@ internal sealed class RequestPipelinePolicyProvider : IRequestPipelinePolicyProv
         if (_requireExplicitConfiguration)
         {
             throw new InvalidOperationException(
-                $"No mediator pipeline configuration was registered for request type '{requestType.FullName}'.\n" +
-                $"To fix, configure the request type using:\n" +
-                $"  services.AddMediator(options =>\n" +
-                $"  {{\n" +
-                $"      options.BehaviorOptions.ConfigureFor<{requestType.Name}>(builder =>\n" +
-                $"      {{\n" +
-                $"          builder.UseLogging();\n" +
-                $"          builder.UseValidation();\n" +
-                $"          builder.UseTransaction();\n" +
-                $"      }});\n" +
-                $"  }});\n" +
-                $"Or disable explicit configuration with:\n" +
-                $"  options.BehaviorOptions.RequireExplicitRequestConfiguration = false;"
+                $"No mediator pipeline configuration was registered for request type '{requestType.FullName}'.\n"
+                    + $"To fix, configure the request type using:\n"
+                    + $"  services.AddMediator(options =>\n"
+                    + $"  {{\n"
+                    + $"      options.BehaviorOptions.ConfigureFor<{requestType.Name}>(builder =>\n"
+                    + $"      {{\n"
+                    + $"          builder.UseLogging();\n"
+                    + $"          builder.UseValidation();\n"
+                    + $"          builder.UseTransaction();\n"
+                    + $"      }});\n"
+                    + $"  }});\n"
+                    + $"Or disable explicit configuration with:\n"
+                    + $"  options.BehaviorOptions.RequireExplicitRequestConfiguration = false;"
             );
         }
 
@@ -128,7 +129,7 @@ internal sealed class RequestPipelinePolicyProvider : IRequestPipelinePolicyProv
         {
             UseLogging = true,
             UseValidation = true,
-            UseTransaction = true
+            UseTransaction = true,
         };
     }
 }
