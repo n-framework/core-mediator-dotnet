@@ -13,8 +13,6 @@ acore_log_info "Running format for all projects..."
 
 for helper_format in "${SCRIPT_DIR}/helpers"/*/format.sh; do
 	[ -f "$helper_format" ] || continue
-	helper_name=$(basename "$(dirname "$helper_format")")
-	acore_log_section "$helper_name"
 	bash "$helper_format"
 done
 

@@ -10,11 +10,13 @@ public sealed class AbstractionsDependencyTests
 
         foreach (var reference in references)
         {
-            var isNFramework = reference.Name != null && reference.Name.StartsWith("NFramework");
-            var isNotAbstractions = reference.Name != "NFramework.Mediator.Abstractions";
+            bool isNFramework = reference.Name != null && reference.Name.StartsWith("NFramework");
+            bool isNotAbstractions = reference.Name != "NFramework.Mediator.Abstractions";
             if (isNFramework && isNotAbstractions)
             {
-                throw new Exception($"Abstractions should not reference other NFramework assemblies, but references: {reference.Name}");
+                throw new Exception(
+                    $"Abstractions should not reference other NFramework assemblies, but references: {reference.Name}"
+                );
             }
         }
     }

@@ -37,7 +37,7 @@ public sealed class PublicApiContractTests
         var mediatorMethods = typeof(IMediator).GetMethods();
         foreach (var method in mediatorMethods)
         {
-            var hasToken = method.GetParameters().Any(p => p.ParameterType == typeof(CancellationToken));
+            bool hasToken = method.GetParameters().Any(p => p.ParameterType == typeof(CancellationToken));
             hasToken.ShouldBeTrue();
         }
     }
@@ -83,7 +83,7 @@ public sealed class PublicApiContractTests
         ContractShapeInspector.HasHandleMethod(behaviorType).ShouldBeTrue();
 
         var handleMethod = behaviorType.GetMethod("Handle");
-        handleMethod.ShouldNotBeNull();
+        _ = handleMethod.ShouldNotBeNull();
         ContractShapeInspector.HasCancellationTokenParameter(handleMethod!).ShouldBeTrue();
 
         var parameters = handleMethod!.GetParameters();
@@ -96,7 +96,7 @@ public sealed class PublicApiContractTests
     private static void AssertHandleSignature(Type handlerInterface, Type expectedReturnTypeDefinition)
     {
         var handleMethod = handlerInterface.GetMethod("Handle");
-        handleMethod.ShouldNotBeNull();
+        _ = handleMethod.ShouldNotBeNull();
         ContractShapeInspector.HasCancellationTokenParameter(handleMethod!).ShouldBeTrue();
 
         if (expectedReturnTypeDefinition.IsGenericTypeDefinition)

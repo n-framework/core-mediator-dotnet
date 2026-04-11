@@ -10,6 +10,8 @@ cd "$REPO_ROOT"
 acore_log_section "🔨 Building .NET project..."
 
 dotnet build src/NFramework.Mediator.Abstractions/NFramework.Mediator.Abstractions.csproj
+dotnet build src/NFramework.Mediator/NFramework.Mediator.csproj
 dotnet build tests/unit/NFramework.Mediator.Abstractions.Tests/NFramework.Mediator.Abstractions.Tests.csproj
+dotnet build tests/unit/NFramework.Mediator.Tests/NFramework.Mediator.Tests.csproj
 
 acore_log_success "✨ Build complete!"

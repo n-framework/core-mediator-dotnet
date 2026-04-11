@@ -13,8 +13,6 @@ acore_log_info "Running lint for all projects..."
 
 for helper_lint in "${SCRIPT_DIR}/helpers"/*/lint.sh; do
 	[ -f "$helper_lint" ] || continue
-	helper_name=$(basename "$(dirname "$helper_lint")")
-	acore_log_section "$helper_name"
 	bash "$helper_lint"
 done
 
