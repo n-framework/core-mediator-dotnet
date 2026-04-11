@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NFramework.Mediator.Behaviors;
+using NFramework.Mediator.Tests.TestDoubles;
 
 namespace NFramework.Mediator.Tests.Behaviors;
 
@@ -8,8 +9,8 @@ public sealed class LoggingBehaviorTests
     [Fact]
     public async Task Handle_ShouldLogStartAndCompletion_ForSuccessfulRequest()
     {
-        var logger = new TestDoubles.FakeRequestLogger<TestRequest>();
-        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger);
+        var logger = new FakeRequestLogger<TestRequest>();
+        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger, new FakeRequestPipelinePolicyProvider());
 
         var response = await behavior.Handle(
             new TestRequest(),
@@ -27,8 +28,8 @@ public sealed class LoggingBehaviorTests
     [Fact]
     public async Task Handle_ShouldLogShortCircuit_WhenResponseMarksIt()
     {
-        var logger = new TestDoubles.FakeRequestLogger<TestRequest>();
-        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger);
+        var logger = new FakeRequestLogger<TestRequest>();
+        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger, new FakeRequestPipelinePolicyProvider());
 
         var response = await behavior.Handle(
             new TestRequest(),
@@ -44,8 +45,8 @@ public sealed class LoggingBehaviorTests
     [Fact]
     public async Task Handle_ShouldLogFailure_WhenHandlerThrows()
     {
-        var logger = new TestDoubles.FakeRequestLogger<TestRequest>();
-        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger);
+        var logger = new FakeRequestLogger<TestRequest>();
+        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger, new FakeRequestPipelinePolicyProvider());
 
         var action = async () =>
             await behavior.Handle(

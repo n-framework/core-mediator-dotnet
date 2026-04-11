@@ -10,11 +10,16 @@ public sealed class MediatorAdapter : IMediator
 {
     private readonly global::Mediator.IMediator _innerMediator;
 
+    /// <summary>
+    /// Creates a new mediator adapter.
+    /// </summary>
+    /// <param name="innerMediator">The underlying Mediator instance.</param>
     public MediatorAdapter(global::Mediator.IMediator innerMediator)
     {
         _innerMediator = innerMediator;
     }
 
+    /// <inheritdoc />
     public ValueTask<TResult> SendAsync<TResult>(
         ICommand<TResult> command,
         CancellationToken cancellationToken = default
@@ -23,11 +28,13 @@ public sealed class MediatorAdapter : IMediator
         return sendObjectAsync<TResult>(command, cancellationToken);
     }
 
+    /// <inheritdoc />
     public ValueTask<TResult> SendAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
     {
         return sendObjectAsync<TResult>(query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public IAsyncEnumerable<TResult> StreamAsync<TResult>(
         IStreamQuery<TResult> query,
         CancellationToken cancellationToken = default
@@ -37,6 +44,7 @@ public sealed class MediatorAdapter : IMediator
         return CastStream<TResult>(sender.CreateStream((object)query, cancellationToken), cancellationToken);
     }
 
+    /// <inheritdoc />
     public ValueTask PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
         where TEvent : IEvent
     {
@@ -52,7 +60,11 @@ public sealed class MediatorAdapter : IMediator
         return result is TResult typed
             ? typed
             : throw new InvalidOperationException(
-                $"Mediator result type mismatch. Expected '{typeof(TResult).FullName}', received '{result?.GetType().FullName ?? "null"}'."
+                $"Mediator result type mismatch. Expected '{typeof(TResult).FullName}', received '{result?.GetType().FullName ?? "null"}'.\n" +
+                $"Troubleshooting:\n" +
+                $"  1. Verify your handler returns the correct type: ICommandHandler<TCommand, TResult> or IQuery<TQuery, TResult>\n" +
+                $"  2. Check that the command/query type in your request matches the registered handler\n" +
+                $"  3. Ensure your handler is registered in the DI container"
             );
     }
 
@@ -70,7 +82,11 @@ public sealed class MediatorAdapter : IMediator
             }
 
             throw new InvalidOperationException(
-                $"Mediator stream item type mismatch. Expected '{typeof(TResult).FullName}', received '{item?.GetType().FullName ?? "null"}'."
+                $"Mediator stream item type mismatch. Expected '{typeof(TResult).FullName}', received '{item?.GetType().FullName ?? "null"}'.\n" +
+                $"Troubleshooting:\n" +
+                $"  1. Verify your stream query handler returns the correct type: IStreamQueryHandler<TStreamQuery, TResult>\n" +
+                $"  2. Check that the stream query type matches the registered handler\n" +
+                $"  3. Ensure your stream query handler is registered in the DI container"
             );
         }
     }

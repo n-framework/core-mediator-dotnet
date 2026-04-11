@@ -5,8 +5,17 @@ using NFramework.Mediator.Configuration;
 
 namespace NFramework.Mediator;
 
+/// <summary>
+/// Extension methods for registering mediator services in the dependency injection container.
+/// </summary>
 public static class MediatorServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers mediator pipeline behaviors with the service collection.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">Optional configuration action for <see cref="MediatorBehaviorOptions"/>.</param>
+    /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddMediatorBehaviors(
         this IServiceCollection services,
         Action<MediatorBehaviorOptions>? configure = null
@@ -48,6 +57,11 @@ public static class MediatorServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers the NFramework mediator adapter.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddMediatorAdapter(this IServiceCollection services)
     {
         _ = services.AddSingleton<IMediator, MediatorAdapter>();

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NFramework.Mediator.Behaviors;
+using NFramework.Mediator.Tests.TestDoubles;
 
 namespace NFramework.Mediator.Tests.Behaviors;
 
@@ -10,7 +11,8 @@ public sealed class ValidationBehaviorTests
     {
         var behavior = new ValidationBehavior<TestRequest, TestResponse>(
             [new PassThroughValidator()],
-            new TestFailureResponseFactory()
+            new TestFailureResponseFactory(),
+            new FakeRequestPipelinePolicyProvider()
         );
 
         var response = await behavior.Handle(
@@ -27,7 +29,8 @@ public sealed class ValidationBehaviorTests
     {
         var behavior = new ValidationBehavior<TestRequest, TestResponse>(
             [new FailValidator("E001", "Name is required")],
-            new TestFailureResponseFactory()
+            new TestFailureResponseFactory(),
+            new FakeRequestPipelinePolicyProvider()
         );
 
         var response = await behavior.Handle(
@@ -45,7 +48,8 @@ public sealed class ValidationBehaviorTests
     {
         var behavior = new ValidationBehavior<TestRequest, TestResponse>(
             [new FailValidator("E001", "first"), new FailValidator("E002", "second")],
-            new TestFailureResponseFactory()
+            new TestFailureResponseFactory(),
+            new FakeRequestPipelinePolicyProvider()
         );
 
         var response = await behavior.Handle(
@@ -55,6 +59,73 @@ public sealed class ValidationBehaviorTests
         );
 
         _ = response.Errors.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenValidationFailsAndNoFactoryRegistered()
+    {
+        var behavior = new ValidationBehavior<TestRequest, TestResponse>(
+            [new FailValidator("E001", "error")],
+            failureResponseFactory: null,
+            new FakeRequestPipelinePolicyProvider()
+        );
+
+        var action = async () => await behavior.Handle(
+            new TestRequest("bad"),
+            (_, _) => ValueTask.FromResult(new TestResponse(false, [])),
+            default
+        );
+
+        _ = await action.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Validation failed*no*IValidationFailureResponseFactory*");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldContinue_WhenNoValidatorsRegistered()
+    {
+        var behavior = new ValidationBehavior<TestRequest, TestResponse>(
+            [],
+            new TestFailureResponseFactory(),
+            new FakeRequestPipelinePolicyProvider()
+        );
+
+        bool nextCalled = false;
+        var response = await behavior.Handle(
+            new TestRequest("test"),
+            (_, _) =>
+            {
+                nextCalled = true;
+                return ValueTask.FromResult(new TestResponse(false, []));
+            },
+            default
+        );
+
+        _ = nextCalled.Should().BeTrue();
+        _ = response.IsShortCircuited.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPropagateCancellationToken_ToHandler()
+    {
+        using var cts = new CancellationTokenSource();
+        var behavior = new ValidationBehavior<TestRequest, TestResponse>(
+            [new PassThroughValidator()],
+            new TestFailureResponseFactory(),
+            new FakeRequestPipelinePolicyProvider()
+        );
+
+        CancellationToken capturedToken = default;
+        var response = await behavior.Handle(
+            new TestRequest("test"),
+            (_, ct) =>
+            {
+                capturedToken = ct;
+                return ValueTask.FromResult(new TestResponse(false, []));
+            },
+            cts.Token
+        );
+
+        _ = capturedToken.Should().Be(cts.Token);
     }
 
     private sealed record TestRequest(string Name) : global::Mediator.IMessage;

@@ -80,5 +80,103 @@ public sealed class BehaviorOrderTests
         _ = configuration.UseTransaction.Should().BeFalse();
     }
 
+    [Fact]
+    public void AddMediatorBehaviors_ShouldDisableLogging_WhenDisabled()
+    {
+        var services = new ServiceCollection();
+
+        _ = services.AddMediatorBehaviors(options =>
+        {
+            options.EnableLogging = false;
+        });
+
+        var registrations = services
+            .Where(d => d.ServiceType == typeof(global::Mediator.IPipelineBehavior<,>))
+            .Select(d => d.ImplementationType)
+            .ToList();
+
+        _ = registrations.Should().NotContain(typeof(LoggingBehavior<,>));
+    }
+
+    [Fact]
+    public void AddMediatorBehaviors_ShouldDisableValidation_WhenDisabled()
+    {
+        var services = new ServiceCollection();
+
+        _ = services.AddMediatorBehaviors(options =>
+        {
+            options.EnableValidation = false;
+        });
+
+        var registrations = services
+            .Where(d => d.ServiceType == typeof(global::Mediator.IPipelineBehavior<,>))
+            .Select(d => d.ImplementationType)
+            .ToList();
+
+        _ = registrations.Should().NotContain(typeof(ValidationBehavior<,>));
+    }
+
+    [Fact]
+    public void AddMediatorBehaviors_ShouldDisableTransaction_WhenDisabled()
+    {
+        var services = new ServiceCollection();
+
+        _ = services.AddMediatorBehaviors(options =>
+        {
+            options.EnableTransaction = false;
+        });
+
+        var registrations = services
+            .Where(d => d.ServiceType == typeof(global::Mediator.IPipelineBehavior<,>))
+            .Select(d => d.ImplementationType)
+            .ToList();
+
+        _ = registrations.Should().NotContain(typeof(TransactionBehavior<,>));
+    }
+
+    [Fact]
+    public void AddMediatorBehaviors_ShouldAllowExplicitConfigurationWithoutExplicitMode()
+    {
+        var services = new ServiceCollection();
+
+        _ = services.AddMediatorBehaviors(options =>
+        {
+            options.RequireExplicitRequestConfiguration = false;
+            options.ConfigureFor<TestMessage>(pipeline => pipeline.UseLogging().UseTransaction());
+        });
+
+        var provider = services.BuildServiceProvider();
+        var policyProvider =
+            provider.GetRequiredService<NFramework.Mediator.Configuration.IRequestPipelinePolicyProvider>();
+
+        var configuration = policyProvider.GetConfiguration(typeof(TestMessage));
+
+        _ = configuration.UseLogging.Should().BeTrue();
+        _ = configuration.UseTransaction.Should().BeTrue();
+    }
+
+    [Fact]
+    public void AddMediatorBehaviors_ShouldReturnDefaultConfig_WhenNotRequiredAndNotConfigured()
+    {
+        var services = new ServiceCollection();
+
+        _ = services.AddMediatorBehaviors(options =>
+        {
+            options.RequireExplicitRequestConfiguration = false;
+            // No ConfigureFor() called for TestMessage
+        });
+
+        var provider = services.BuildServiceProvider();
+        var policyProvider =
+            provider.GetRequiredService<NFramework.Mediator.Configuration.IRequestPipelinePolicyProvider>();
+
+        var configuration = policyProvider.GetConfiguration(typeof(TestMessage));
+
+        // When not explicitly configured and explicit mode is off, defaults to all enabled
+        _ = configuration.UseLogging.Should().BeTrue();
+        _ = configuration.UseValidation.Should().BeTrue();
+        _ = configuration.UseTransaction.Should().BeTrue();
+    }
+
     private sealed record TestMessage : global::Mediator.IMessage;
 }

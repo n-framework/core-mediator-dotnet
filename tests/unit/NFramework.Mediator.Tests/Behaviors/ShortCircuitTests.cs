@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NFramework.Mediator.Behaviors;
+using NFramework.Mediator.Tests.TestDoubles;
 
 namespace NFramework.Mediator.Tests.Behaviors;
 
@@ -10,7 +11,11 @@ public sealed class ShortCircuitTests
     {
         bool called = false;
 
-        var behavior = new ValidationBehavior<TestRequest, TestResponse>([new FailValidator()], new FailureFactory());
+        var behavior = new ValidationBehavior<TestRequest, TestResponse>(
+            [new FailValidator()],
+            new FailureFactory(),
+            new FakeRequestPipelinePolicyProvider()
+        );
 
         var response = await behavior.Handle(
             new TestRequest(),
@@ -29,8 +34,8 @@ public sealed class ShortCircuitTests
     [Fact]
     public async Task LoggingBehavior_ShouldCaptureShortCircuitEvent()
     {
-        var logger = new TestDoubles.FakeRequestLogger<TestRequest>();
-        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger);
+        var logger = new FakeRequestLogger<TestRequest>();
+        var behavior = new LoggingBehavior<TestRequest, TestResponse>(logger, new FakeRequestPipelinePolicyProvider());
 
         _ = await behavior.Handle(new TestRequest(), (_, _) => ValueTask.FromResult(new TestResponse(true)), default);
 
