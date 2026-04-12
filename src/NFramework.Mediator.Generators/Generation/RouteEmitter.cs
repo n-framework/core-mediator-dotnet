@@ -7,6 +7,11 @@ internal static class RouteEmitter
 {
     public static string Emit(IReadOnlyList<RouteMappingModel> routes)
     {
+        if (routes is null)
+        {
+            throw new ArgumentNullException(nameof(routes));
+        }
+
         var builder = new StringBuilder();
         _ = builder.AppendLine("using Microsoft.AspNetCore.Builder;");
         _ = builder.AppendLine("using Microsoft.AspNetCore.Http;");

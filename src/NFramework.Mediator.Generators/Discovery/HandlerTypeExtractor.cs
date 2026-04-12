@@ -4,6 +4,9 @@ using NFramework.Mediator.Generators.Discovery.Models;
 
 namespace NFramework.Mediator.Generators.Discovery;
 
+/// <summary>
+/// Extracts handler registration models from type symbols by analyzing implemented interfaces.
+/// </summary>
 internal static class HandlerTypeExtractor
 {
     private const string HandlersNamespace = "NFramework.Mediator.Abstractions.Contracts.Handlers";
@@ -11,6 +14,11 @@ internal static class HandlerTypeExtractor
     private const string QueryHandlerMetadataName = "IQueryHandler`2";
     private const string EventHandlerMetadataName = "IEventHandler`1";
 
+    /// <summary>
+    /// Extracts handler models from a type symbol by examining its implemented handler interfaces.
+    /// </summary>
+    /// <param name="handlerType">The handler type to analyze</param>
+    /// <returns>An extraction result containing discovered models and any diagnostics</returns>
     public static ExtractionResult Extract(INamedTypeSymbol handlerType)
     {
         var models = new List<HandlerRegistrationModel>();
@@ -22,20 +30,13 @@ internal static class HandlerTypeExtractor
             string metadataName = interfaceDefinition.MetadataName;
             string containingNamespace = interfaceDefinition.ContainingNamespace.ToDisplayString();
 
-            bool isCommandHandler =
-                metadataName == CommandHandlerMetadataName && containingNamespace == HandlersNamespace;
-            bool isQueryHandler = metadataName == QueryHandlerMetadataName && containingNamespace == HandlersNamespace;
-            bool isEventHandler = metadataName == EventHandlerMetadataName && containingNamespace == HandlersNamespace;
-
-            if (!isCommandHandler && !isQueryHandler && !isEventHandler)
+            string? category = ResolveCategory(metadataName, containingNamespace);
+            if (category is null)
             {
                 continue;
             }
 
-            if (
-                implementedInterface.IsUnboundGenericType
-                || implementedInterface.TypeArguments.Any(t => t is ITypeParameterSymbol)
-            )
+            if (IsUnresolvedGeneric(implementedInterface))
             {
                 diagnostics.Add(
                     new DiagnosticEnvelope(
@@ -48,47 +49,11 @@ internal static class HandlerTypeExtractor
             }
 
             bool isApiExposed = HasApiExposedAttribute(handlerType);
-            string category;
-            string requestType;
-            string? responseType = null;
-            string? httpMethod = null;
 
-            if (isEventHandler)
-            {
-                category = "event";
-                requestType = implementedInterface
-                    .TypeArguments[0]
-                    .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            }
-            else
-            {
-                requestType = implementedInterface
-                    .TypeArguments[0]
-                    .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                responseType = implementedInterface
-                    .TypeArguments[1]
-                    .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                category = isCommandHandler ? "command" : "query";
-                httpMethod = isCommandHandler ? "POST" : "GET";
-            }
-
-            models.Add(
-                new HandlerRegistrationModel(
-                    implementedInterface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    handlerType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    requestType,
-                    responseType,
-                    category,
-                    isApiExposed,
-                    isApiExposed ? BuildRouteTemplate(implementedInterface.TypeArguments[0].Name) : null,
-                    httpMethod,
-                    handlerType.Locations.FirstOrDefault()
-                )
-            );
+            models.Add(BuildRegistrationModel(handlerType, implementedInterface, category, isApiExposed));
         }
 
-        int distinctCategories = models.Select(model => model.HandlerCategory).Distinct(StringComparer.Ordinal).Count();
-        if (distinctCategories > 1)
+        if (HasMultipleCategories(models))
         {
             diagnostics.Add(
                 new DiagnosticEnvelope(
@@ -100,6 +65,89 @@ internal static class HandlerTypeExtractor
         }
 
         return new ExtractionResult(models, diagnostics);
+    }
+
+    private static string? ResolveCategory(string metadataName, string containingNamespace)
+    {
+        if (containingNamespace != HandlersNamespace)
+        {
+            return null;
+        }
+
+        if (metadataName == CommandHandlerMetadataName)
+        {
+            return "command";
+        }
+
+        if (metadataName == QueryHandlerMetadataName)
+        {
+            return "query";
+        }
+
+        if (metadataName == EventHandlerMetadataName)
+        {
+            return "event";
+        }
+
+        return null;
+    }
+
+    private static bool IsUnresolvedGeneric(INamedTypeSymbol implementedInterface)
+    {
+        return implementedInterface.IsUnboundGenericType
+            || implementedInterface.TypeArguments.Any(t => t is ITypeParameterSymbol);
+    }
+
+    private static HandlerRegistrationModel BuildRegistrationModel(
+        INamedTypeSymbol handlerType,
+        INamedTypeSymbol implementedInterface,
+        string category,
+        bool isApiExposed
+    )
+    {
+        string requestType = implementedInterface
+            .TypeArguments[0]
+            .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        string? responseType =
+            category != "event"
+                ? implementedInterface.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                : null;
+
+        string? httpMethod = category switch
+        {
+            "command" => "POST",
+            "query" => "GET",
+            _ => null,
+        };
+
+        string? routeTemplate = isApiExposed
+            ? RouteTemplateBuilder.BuildRouteTemplate(implementedInterface.TypeArguments[0].Name)
+            : null;
+
+        return new HandlerRegistrationModel(
+            implementedInterface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            handlerType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            requestType,
+            responseType,
+            category,
+            isApiExposed,
+            routeTemplate,
+            httpMethod,
+            handlerType.Locations.FirstOrDefault()
+        );
+    }
+
+    private static bool HasMultipleCategories(IReadOnlyList<HandlerRegistrationModel> models)
+    {
+        if (models.Count < 2)
+        {
+            return false;
+        }
+
+        int distinctCategories = models.Select(model => model.HandlerCategory).Distinct(StringComparer.Ordinal).Count();
+
+        return distinctCategories > 1;
     }
 
     private static bool HasApiExposedAttribute(INamedTypeSymbol handlerType)
@@ -118,48 +166,4 @@ internal static class HandlerTypeExtractor
 
         return false;
     }
-
-    private static string BuildRouteTemplate(string requestTypeName)
-    {
-        string routeName = requestTypeName;
-        if (routeName.EndsWith("Command", StringComparison.Ordinal))
-        {
-            routeName = routeName.Substring(0, routeName.Length - "Command".Length);
-        }
-        else if (routeName.EndsWith("Query", StringComparison.Ordinal))
-        {
-            routeName = routeName.Substring(0, routeName.Length - "Query".Length);
-        }
-
-        string kebab = string.Concat(
-            routeName.Select(
-                (character, index) =>
-                    index > 0 && char.IsUpper(character)
-                        ? $"-{char.ToLowerInvariant(character)}"
-                        : char.ToLowerInvariant(character).ToString()
-            )
-        );
-
-        if (!kebab.EndsWith("s", StringComparison.Ordinal))
-        {
-            kebab += "s";
-        }
-
-        return $"/api/{kebab}";
-    }
-}
-
-internal sealed class ExtractionResult
-{
-    public ExtractionResult(
-        IReadOnlyList<HandlerRegistrationModel> models,
-        IReadOnlyList<DiagnosticEnvelope> diagnostics
-    )
-    {
-        Models = models;
-        Diagnostics = diagnostics;
-    }
-
-    public IReadOnlyList<HandlerRegistrationModel> Models { get; }
-    public IReadOnlyList<DiagnosticEnvelope> Diagnostics { get; }
 }

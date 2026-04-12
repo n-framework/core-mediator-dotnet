@@ -11,6 +11,21 @@ internal static class RegistrationEmitter
         IReadOnlyList<HandlerRegistrationModel> eventHandlers
     )
     {
+        if (commandHandlers is null)
+        {
+            throw new ArgumentNullException(nameof(commandHandlers));
+        }
+
+        if (queryHandlers is null)
+        {
+            throw new ArgumentNullException(nameof(queryHandlers));
+        }
+
+        if (eventHandlers is null)
+        {
+            throw new ArgumentNullException(nameof(eventHandlers));
+        }
+
         var all = commandHandlers
             .Concat(queryHandlers)
             .Concat(eventHandlers)
@@ -46,6 +61,16 @@ internal static class RegistrationEmitter
 
     public static string EmitCategoryFile(string className, IReadOnlyList<HandlerRegistrationModel> models)
     {
+        if (string.IsNullOrEmpty(className))
+        {
+            throw new ArgumentException("Value cannot be null or empty.", nameof(className));
+        }
+
+        if (models is null)
+        {
+            throw new ArgumentNullException(nameof(models));
+        }
+
         var builder = new StringBuilder();
         _ = builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         _ = builder.AppendLine();

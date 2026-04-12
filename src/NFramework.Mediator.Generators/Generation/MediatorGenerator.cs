@@ -7,9 +7,21 @@ using NFramework.Mediator.Generators.Discovery.Models;
 
 namespace NFramework.Mediator.Generators.Generation;
 
+/// <summary>
+/// Source generator that produces DI registration code and route mappings for Mediator handlers.
+/// </summary>
+/// <remarks>
+/// This generator discovers implementations of ICommandHandler&lt;T,TResult&gt;, IQueryHandler&lt;T,TResult&gt;,
+/// and IEventHandler&lt;T&gt; interfaces, and generates:
+/// - Extension methods for registering handlers with DI
+/// - HTTP route mappings for handlers marked with [ApiExposed]
+/// </remarks>
 [Generator]
 public sealed class MediatorGenerator : IIncrementalGenerator
 {
+    /// <summary>
+    /// Initializes the incremental generator pipeline for discovering handlers and emitting source code.
+    /// </summary>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Attribute-based path kept to satisfy high-performance Roslyn filtering for API-exposed handlers.
@@ -56,17 +68,14 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                     )
                     .ToArray();
 
-                var commandHandlers = CommandHandlerDiscovery.Select(normalizedModels);
-                var queryHandlers = QueryHandlerDiscovery.Select(normalizedModels);
-                var eventHandlers = EventHandlerDiscovery.Select(normalizedModels);
+                var commandHandlers = HandlerDiscovery.SelectByCategory(normalizedModels, "command");
+                var queryHandlers = HandlerDiscovery.SelectByCategory(normalizedModels, "query");
+                var eventHandlers = HandlerDiscovery.SelectByCategory(normalizedModels, "event");
 
                 var duplicateKeys = commandHandlers
                     .Concat(queryHandlers)
                     .Concat(eventHandlers)
-                    .GroupBy(
-                        model => $"{model.InterfaceDisplayName}|{model.HandlerDisplayName}",
-                        StringComparer.Ordinal
-                    )
+                    .GroupBy(model => model.InterfaceDisplayName, StringComparer.Ordinal)
                     .Where(group => group.Count() > 1);
 
                 foreach (IGrouping<string, HandlerRegistrationModel> duplicate in duplicateKeys)
@@ -113,6 +122,9 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         );
     }
 
+    /// <summary>
+    /// Extracts handler information from a class declaration, validating return types.
+    /// </summary>
     private static ExtractionResult ExtractFromContext(GeneratorSyntaxContext syntaxContext)
     {
         if (syntaxContext.Node is not ClassDeclarationSyntax)
@@ -152,6 +164,9 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         return new ExtractionResult(result.Models, diagnostics);
     }
 
+    /// <summary>
+    /// Checks if the type has a Handle method returning ValueTask or ValueTask&lt;TResult&gt;.
+    /// </summary>
     private static bool HasSupportedHandleReturnType(INamedTypeSymbol typeSymbol)
     {
         foreach (IMethodSymbol method in typeSymbol.GetMembers().OfType<IMethodSymbol>())
