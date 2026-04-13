@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net11.0</TargetFrameworks>
     <AssemblyName>NFramework.Mediator</AssemblyName>
     <RootNamespace>NFramework.Mediator</RootNamespace>
     <Description>NFramework mediator adapter and pipeline behaviors backed by martinothamar/Mediator.</Description>
