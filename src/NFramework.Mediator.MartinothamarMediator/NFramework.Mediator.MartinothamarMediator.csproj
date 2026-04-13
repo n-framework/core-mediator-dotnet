@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net11.0</TargetFrameworks>
+    <AssemblyName>NFramework.Mediator.MartinothamarMediator</AssemblyName>
+    <RootNamespace>NFramework.Mediator.MartinothamarMediator</RootNamespace>
+    <Description>NFramework mediator implementation backed by martinothamar/Mediator.</Description>
+    <PackageId>NFramework.Mediator.MartinothamarMediator</PackageId>
+    <PackageTags>mediator;cqrs;pipeline;nframework</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
+    <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
+    <PackageReference Include="System.Text.Json" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NFramework.Mediator.Abstractions\NFramework.Mediator.Abstractions.csproj" />
+  </ItemGroup>
+</Project>
