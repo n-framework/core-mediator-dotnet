@@ -1,6 +1,11 @@
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using NFramework.Mediator.MartinothamarMediator.Behaviors;
+using NFramework.Mediator.MartinothamarMediator.Authorization;
+using NFramework.Mediator.MartinothamarMediator.Caching;
+using NFramework.Mediator.MartinothamarMediator.Logging;
+using NFramework.Mediator.MartinothamarMediator.Performance;
+using NFramework.Mediator.MartinothamarMediator.Transactions;
+using NFramework.Mediator.MartinothamarMediator.Validation;
 
 namespace NFramework.Mediator.MartinothamarMediator.Configuration;
 
@@ -15,24 +20,24 @@ public static class MediatorServiceCollectionExtensions
         configure?.Invoke(pipelineOptions);
 
         if (pipelineOptions.EnableLogging)
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
         if (pipelineOptions.EnableAuthorization)
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
+            _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
 
         if (pipelineOptions.EnableValidation)
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         if (pipelineOptions.EnableTransaction)
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
+            _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 
         if (pipelineOptions.EnablePerformance)
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
+            _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
 
         if (pipelineOptions.EnableCaching)
         {
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
+            _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
+            _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
         }
 
         return services;
