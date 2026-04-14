@@ -3,14 +3,14 @@ using NFramework.Mediator.Abstractions.Behaviors;
 
 namespace NFramework.Mediator.MartinothamarMediator.Behaviors;
 
-public sealed class AuthorizationBehavior<TRequest, TResponse>
-    : IPipelineBehavior<TRequest, TResponse>
+public sealed class AuthorizationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IMessage
 {
     public async ValueTask<TResponse> Handle(
         TRequest request,
         MessageHandlerDelegate<TRequest, TResponse> next,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (request is not ISecuredRequest secured)
         {
@@ -20,7 +20,7 @@ public sealed class AuthorizationBehavior<TRequest, TResponse>
         // Implementation requires tying into specific Identity/Auth abstraction
         var requiredRoles = secured.RequiredRoles ?? Array.Empty<string>();
         var requiredOperations = secured.RequiredOperations ?? Array.Empty<string>();
-        
+
         return await next(request, cancellationToken);
     }
 }

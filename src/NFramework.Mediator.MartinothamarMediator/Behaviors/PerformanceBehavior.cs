@@ -5,8 +5,7 @@ using NFramework.Mediator.Abstractions.Behaviors;
 
 namespace NFramework.Mediator.MartinothamarMediator.Behaviors;
 
-public sealed class PerformanceBehavior<TRequest, TResponse>(
-    ILogger<PerformanceBehavior<TRequest, TResponse>> logger)
+public sealed class PerformanceBehavior<TRequest, TResponse>(ILogger<PerformanceBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IMessage
 {
@@ -15,7 +14,8 @@ public sealed class PerformanceBehavior<TRequest, TResponse>(
     public async ValueTask<TResponse> Handle(
         TRequest request,
         MessageHandlerDelegate<TRequest, TResponse> next,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (request is not IIntervalRequest)
         {
@@ -33,7 +33,9 @@ public sealed class PerformanceBehavior<TRequest, TResponse>(
             var requestName = typeof(TRequest).Name;
             logger.LogWarning(
                 "Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds)",
-                requestName, elapsedMilliseconds);
+                requestName,
+                elapsedMilliseconds
+            );
         }
 
         return response;

@@ -8,14 +8,15 @@ namespace NFramework.Mediator.MartinothamarMediator.Behaviors;
 
 public sealed class CachingBehavior<TRequest, TResponse>(
     IDistributedCache cache,
-    ILogger<CachingBehavior<TRequest, TResponse>> logger)
-    : IPipelineBehavior<TRequest, TResponse>
+    ILogger<CachingBehavior<TRequest, TResponse>> logger
+) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IMessage
 {
     public async ValueTask<TResponse> Handle(
         TRequest request,
         MessageHandlerDelegate<TRequest, TResponse> next,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (request is not ICacheableRequest cacheable)
         {
@@ -23,7 +24,7 @@ public sealed class CachingBehavior<TRequest, TResponse>(
         }
 
         var requestName = typeof(TRequest).Name;
-        var cacheKey = string.IsNullOrEmpty(cacheable.CacheKeyPrefix) 
+        var cacheKey = string.IsNullOrEmpty(cacheable.CacheKeyPrefix)
             ? $"{requestName}_{JsonSerializer.Serialize(request)}"
             : $"{cacheable.CacheKeyPrefix}";
 
@@ -38,7 +39,9 @@ public sealed class CachingBehavior<TRequest, TResponse>(
 
         var cacheOptions = new DistributedCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheable.CacheDurationMinutes > 0 ? cacheable.CacheDurationMinutes : 30)
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(
+                cacheable.CacheDurationMinutes > 0 ? cacheable.CacheDurationMinutes : 30
+            ),
         };
 
         var responseBytes = JsonSerializer.SerializeToUtf8Bytes(response);

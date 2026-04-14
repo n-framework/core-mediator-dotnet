@@ -5,15 +5,15 @@ using NFramework.Mediator.Abstractions.Behaviors;
 
 namespace NFramework.Mediator.MartinothamarMediator.Behaviors;
 
-public sealed class LoggingBehavior<TRequest, TResponse>(
-    ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+public sealed class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IMessage
 {
     public async ValueTask<TResponse> Handle(
         TRequest request,
         MessageHandlerDelegate<TRequest, TResponse> next,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (request is not ILoggableRequest loggable)
         {
@@ -22,10 +22,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
 
         var requestName = typeof(TRequest).Name;
 
-        logger.LogInformation(
-            "Handling {RequestName}",
-            requestName
-        );
+        logger.LogInformation("Handling {RequestName}", requestName);
 
         var stopwatch = Stopwatch.StartNew();
         try
@@ -33,11 +30,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
             var response = await next(request, cancellationToken);
             stopwatch.Stop();
 
-            logger.LogInformation(
-                "Handled {RequestName} in {ElapsedMs}ms",
-                requestName,
-                stopwatch.ElapsedMilliseconds
-            );
+            logger.LogInformation("Handled {RequestName} in {ElapsedMs}ms", requestName, stopwatch.ElapsedMilliseconds);
 
             return response;
         }

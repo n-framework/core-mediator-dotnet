@@ -8,7 +8,8 @@ public static class MediatorServiceCollectionExtensions
 {
     public static IServiceCollection AddNFrameworkPipelineBehaviors(
         this IServiceCollection services,
-        Action<NFrameworkPipelineOptions>? configure = null)
+        Action<NFrameworkPipelineOptions>? configure = null
+    )
     {
         var pipelineOptions = new NFrameworkPipelineOptions();
         configure?.Invoke(pipelineOptions);

@@ -7,14 +7,15 @@ namespace NFramework.Mediator.MartinothamarMediator.Behaviors;
 
 public sealed class CacheRemovingBehavior<TRequest, TResponse>(
     IDistributedCache cache,
-    ILogger<CacheRemovingBehavior<TRequest, TResponse>> logger)
-    : IPipelineBehavior<TRequest, TResponse>
+    ILogger<CacheRemovingBehavior<TRequest, TResponse>> logger
+) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IMessage
 {
     public async ValueTask<TResponse> Handle(
         TRequest request,
         MessageHandlerDelegate<TRequest, TResponse> next,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (request is not ICacheRemoverRequest remover)
         {
