@@ -9,9 +9,6 @@ insert_final_newline = true
 
 ## C# files
 [*.cs]
-indent_style = space
-indent_size = 4
-
 # Organize usings
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = true
@@ -72,7 +69,11 @@ dotnet_style_allow_statement_immediately_after_block_experimental = false
 csharp_style_var_elsewhere = true:silent
 csharp_style_var_for_built_in_types = false:warning
 csharp_style_var_when_type_is_apparent = false:silent
+
+# IDE0028: Use collection initializers
 dotnet_diagnostic.IDE0028.severity = none
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
 
 # Expression-bodied members
 csharp_style_expression_bodied_accessors = true:silent
@@ -102,11 +103,14 @@ csharp_style_prefer_readonly_struct = true:suggestion
 csharp_style_prefer_readonly_struct_member = true:suggestion
 
 # Code-block preferences
-csharp_prefer_braces = false:silent
+csharp_prefer_braces = false
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_style_namespace_declarations = file_scoped:silent
 csharp_style_prefer_method_group_conversion = true:silent
 csharp_style_prefer_primary_constructors = true
+
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = warning
 csharp_style_prefer_top_level_statements = true:silent
 
 # Expression-level preferences
@@ -217,3 +221,9 @@ dotnet_naming_style.local.required_prefix = _
 dotnet_naming_style.local.required_suffix =
 dotnet_naming_style.local.word_separator =
 dotnet_naming_style.local.capitalization = camel_case
+
+[**/tests/**/*.cs]
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none
+# IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = none

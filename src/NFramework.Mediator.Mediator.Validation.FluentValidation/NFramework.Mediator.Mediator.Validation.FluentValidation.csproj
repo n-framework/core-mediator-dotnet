@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <AssemblyName>NFramework.Mediator.Mediator.Validation.FluentValidation</AssemblyName>
+    <RootNamespace>NFramework.Mediator.Mediator.Validation.FluentValidation</RootNamespace>
+    <Description>FluentValidation implementation for NFramework Mediator.</Description>
+    <PackageId>NFramework.Mediator.Mediator.Validation.FluentValidation</PackageId>
+    <PackageTags>mediator;cqrs;pipeline;validation;fluentvalidation;nframework</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NFramework.Mediator.Abstractions\NFramework.Mediator.Abstractions.csproj" />
+    <ProjectReference Include="..\NFramework.Mediator.Mediator\NFramework.Mediator.Mediator.csproj" />
+  </ItemGroup>
+</Project>
