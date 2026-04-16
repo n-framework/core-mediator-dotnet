@@ -1,6 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NFramework.Mediator.Abstractions.Performance;
 
-/// <summary>
-/// Performance metrics will be collected for requests implementing this interface.
-/// </summary>
+[SuppressMessage(
+    "Design",
+    "CA1040:Avoid empty interfaces",
+    Justification = "Marker interface for interval-based requests."
+)]
 public interface IIntervalRequest { }

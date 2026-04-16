@@ -12,6 +12,8 @@ public interface ICacheableRequest
 
     int CacheDurationMinutes { get; }
 
+    int? SlidingExpirationMinutes { get; }
+
     /// <summary>
     /// Enables batch invalidation by linking this entry to a logical group.
     /// </summary>

@@ -8,16 +8,26 @@ namespace NFramework.Mediator.Abstractions.Logging;
 /// Handles structured logging with support for parameter exclusion and masking.
 /// Masking logic is optimized for common patterns like Emails and Credit Cards/Numbers.
 /// </summary>
-public abstract class LoggingBehaviorBase<TRequest, TResponse>
+public abstract class LoggingBehaviorBase<TRequest, TResponse>(ILogger logger)
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-    protected LoggingBehaviorBase(ILogger logger)
-    {
-        Logger = logger;
-    }
+    protected ILogger Logger { get; } = logger;
 
-    protected ILogger Logger { get; }
+    private static readonly Action<ILogger, string, string, Exception?> LogRequestFailureAction = LoggerMessage.Define<
+        string,
+        string
+    >(LogLevel.Error, new EventId(1, nameof(HandleAsync)), "Request failed for {RequestName}: {ExceptionMessage}");
+
+    private static readonly Action<ILogger, string, string, Exception?> LogRequestStartAction = LoggerMessage.Define<
+        string,
+        string
+    >(LogLevel.Information, new EventId(2, nameof(LogRequestStart)), "Handling {RequestName} {RequestDetails}");
+
+    private static readonly Action<ILogger, string, string, Exception?> LogRequestEndAction = LoggerMessage.Define<
+        string,
+        string
+    >(LogLevel.Information, new EventId(3, nameof(LogRequestEnd)), "Handled {RequestName} {ResponseDetails}");
 
     protected async ValueTask<TResponse> HandleAsync(
         TRequest request,
@@ -25,40 +35,73 @@ public abstract class LoggingBehaviorBase<TRequest, TResponse>
         CancellationToken cancellationToken
     )
     {
+        ArgumentNullException.ThrowIfNull(next);
+
         if (request is not ILoggableRequest loggable)
         {
-            return await next(cancellationToken);
+            return await next(cancellationToken).ConfigureAwait(false);
         }
 
         string requestName = typeof(TRequest).Name;
-        var requestParameters = ExtractRequestParameters(request, loggable.LogOptions);
+        var requestParameters = SafeExtractRequestParameters(request, loggable.LogOptions);
 
         LogRequestStart(requestName, requestParameters, loggable.LogOptions.User);
 
-        var response = await next(cancellationToken);
-
-        if (loggable.LogOptions.LogResponse)
+        try
         {
-            LogRequestEnd(requestName, response);
-        }
+            var response = await next(cancellationToken).ConfigureAwait(false);
 
-        return response;
+            if (loggable.LogOptions.LogResponse)
+            {
+                LogRequestEnd(requestName, response);
+            }
+
+            return response;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogRequestFailureAction(Logger, requestName, ex.Message, ex);
+            throw;
+        }
     }
 
     /// <summary>
     /// Identifies and filters request properties based on <see cref="LogOptions"/>.
+    /// Handles reflection or serialization errors gracefully with fallback.
     /// </summary>
-    protected static Dictionary<string, object> ExtractRequestParameters(TRequest request, in LogOptions logOptions)
+    protected static Dictionary<string, object> SafeExtractRequestParameters(TRequest request, in LogOptions logOptions)
     {
-        var parameters = new Dictionary<string, object>();
+        try
+        {
+            return ExtractRequestParameters(request, logOptions);
+        }
+        catch (Exception ex)
+            when (ex
+                    is JsonException
+                        or ReflectionTypeLoadException
+                        or AmbiguousMatchException
+                        or TargetInvocationException
+            )
+        {
+            return new Dictionary<string, object> { { "_fallbackError", "Failed to extract parameters" } };
+        }
+    }
 
-        foreach (PropertyInfo prop in typeof(TRequest).GetProperties())
+    private static Dictionary<string, object> ExtractRequestParameters(TRequest request, in LogOptions logOptions)
+    {
+        Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+        foreach (var prop in typeof(TRequest).GetProperties())
         {
             object? value = prop.GetValue(request);
             if (value is null)
                 continue;
 
-            LogExcludeParameter excludeParam = Array.Find(logOptions.ExcludeParameters, p => p.Name == prop.Name);
+            LogExcludeParameter excludeParam = default;
+            if (logOptions.ExcludeParameters != null && logOptions.ExcludeParameters.Count > 0)
+            {
+                excludeParam = logOptions.ExcludeParameters.FirstOrDefault(p => p.Name == prop.Name);
+            }
 
             if (excludeParam.Name != prop.Name)
             {
@@ -86,7 +129,7 @@ public abstract class LoggingBehaviorBase<TRequest, TResponse>
         if (string.IsNullOrEmpty(value))
             return string.Empty;
 
-        if (value.Contains('@'))
+        if (value.Contains('@', StringComparison.Ordinal))
             return MaskEmail(value, param);
         else if (value.All(char.IsDigit))
             return MaskNumeric(value, param);
@@ -172,6 +215,7 @@ public abstract class LoggingBehaviorBase<TRequest, TResponse>
             {
                 simpleMaskedResult[i] = param.MaskChar;
             }
+
             return new string(simpleMaskedResult);
         }
 
@@ -201,18 +245,17 @@ public abstract class LoggingBehaviorBase<TRequest, TResponse>
     /// </summary>
     protected virtual void LogRequestStart(string requestName, Dictionary<string, object> parameters, string user)
     {
-        var logDetail = new
+        if (Logger.IsEnabled(LogLevel.Information))
         {
-            MethodName = "RequestHandler",
-            User = user,
-            Parameters = new[] { new { Type = requestName, Value = parameters } },
-        };
+            var logDetail = new
+            {
+                MethodName = "RequestHandler",
+                User = user,
+                Parameters = new[] { new { Type = requestName, Value = parameters } },
+            };
 
-        Logger.LogInformation(
-            "Handling {RequestName} {RequestDetails}",
-            requestName,
-            JsonSerializer.Serialize(logDetail, JsonOptions)
-        );
+            LogRequestStartAction(Logger, requestName, JsonSerializer.Serialize(logDetail, JsonOptions), null);
+        }
     }
 
     /// <summary>
@@ -220,16 +263,15 @@ public abstract class LoggingBehaviorBase<TRequest, TResponse>
     /// </summary>
     protected virtual void LogRequestEnd(string requestName, TResponse response)
     {
-        var logDetail = new
+        if (Logger.IsEnabled(LogLevel.Information))
         {
-            MethodName = "RequestHandler",
-            Response = new { Type = typeof(TResponse).Name, Value = response },
-        };
+            var logDetail = new
+            {
+                MethodName = "RequestHandler",
+                Response = new { Type = typeof(TResponse).Name, Value = response },
+            };
 
-        Logger.LogInformation(
-            "Handled {RequestName} {ResponseDetails}",
-            requestName,
-            JsonSerializer.Serialize(logDetail, JsonOptions)
-        );
+            LogRequestEndAction(Logger, requestName, JsonSerializer.Serialize(logDetail, JsonOptions), null);
+        }
     }
 }

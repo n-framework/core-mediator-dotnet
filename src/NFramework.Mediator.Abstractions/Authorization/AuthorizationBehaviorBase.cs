@@ -1,12 +1,29 @@
+using Microsoft.Extensions.Logging;
+
 namespace NFramework.Mediator.Abstractions.Authorization;
 
-/// <summary>
-/// Provides reusable authorization logic that checks <see cref="ISecuredRequest"/> requirements
-/// against the target implementation's <see cref="AuthorizeAsync"/> logic.
-/// </summary>
 public abstract class AuthorizationBehaviorBase<TRequest, TResponse>
 {
-    protected AuthorizationBehaviorBase() { }
+    protected static readonly Action<ILogger, string, Exception?> LogUserNotAuthenticated =
+        LoggerMessage.Define<string>(
+            LogLevel.Warning,
+            new EventId(1, nameof(LogUserNotAuthenticated)),
+            "Authorization failed: User is not authenticated for request {RequestName}"
+        );
+
+    protected static readonly Action<ILogger, string, string, Exception?> LogUserLacksRequiredRoles =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Warning,
+            new EventId(2, nameof(LogUserLacksRequiredRoles)),
+            "Authorization failed: User lacks required roles ({Roles}) for request {RequestName}"
+        );
+
+    protected static readonly Action<ILogger, string, string, Exception?> LogUserLacksRequiredPermissions =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Warning,
+            new EventId(3, nameof(LogUserLacksRequiredPermissions)),
+            "Authorization failed: User lacks required permissions ({Permissions}) for request {RequestName}"
+        );
 
     protected async ValueTask<TResponse> HandleAsync(
         TRequest request,
@@ -14,17 +31,19 @@ public abstract class AuthorizationBehaviorBase<TRequest, TResponse>
         CancellationToken cancellationToken
     )
     {
+        ArgumentNullException.ThrowIfNull(next);
+
         if (request is not ISecuredRequest secured)
         {
-            return await next(cancellationToken);
+            return await next(cancellationToken).ConfigureAwait(false);
         }
 
-        string[] requiredRoles = secured.RequiredRoles ?? [];
-        string[] requiredOperations = secured.RequiredOperations ?? [];
+        var requiredRoles = secured.RequiredRoles ?? [];
+        var requiredOperations = secured.RequiredOperations ?? [];
 
-        await AuthorizeAsync(request, requiredRoles, requiredOperations, cancellationToken);
+        await AuthorizeAsync(request, requiredRoles, requiredOperations, cancellationToken).ConfigureAwait(false);
 
-        return await next(cancellationToken);
+        return await next(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

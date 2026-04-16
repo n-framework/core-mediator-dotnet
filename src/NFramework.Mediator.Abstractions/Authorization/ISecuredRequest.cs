@@ -5,7 +5,7 @@ namespace NFramework.Mediator.Abstractions.Authorization;
 /// </summary>
 public interface ISecuredRequest
 {
-    string[] RequiredRoles { get; }
+    IReadOnlyList<string> RequiredRoles { get; }
 
-    string[] RequiredOperations { get; }
+    IReadOnlyList<string> RequiredOperations { get; }
 }

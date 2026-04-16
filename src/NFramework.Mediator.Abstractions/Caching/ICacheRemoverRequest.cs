@@ -5,5 +5,5 @@ namespace NFramework.Mediator.Abstractions.Caching;
 /// </summary>
 public interface ICacheRemoverRequest
 {
-    string[] CacheKeyPatterns { get; }
+    IReadOnlyList<string> CacheKeyPatterns { get; }
 }

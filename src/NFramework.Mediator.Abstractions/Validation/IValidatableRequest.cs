@@ -1,6 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NFramework.Mediator.Abstractions.Validation;
 
-/// <summary>
-/// Only requests implementing this interface will be processed by the validation pipeline.
-/// </summary>
+[SuppressMessage(
+    "Design",
+    "CA1040:Avoid empty interfaces",
+    Justification = "Marker interface for validatable requests."
+)]
 public interface IValidatableRequest { }

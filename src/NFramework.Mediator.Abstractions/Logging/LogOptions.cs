@@ -1,43 +1,42 @@
 namespace NFramework.Mediator.Abstractions.Logging;
 
-public readonly struct LogOptions
+public readonly struct LogOptions(
+    string? user = null,
+    bool logResponse = false,
+    params LogExcludeParameter[] excludeParameters
+) : IEquatable<LogOptions>
 {
-    public LogExcludeParameter[] ExcludeParameters { get; init; }
+    public IReadOnlyList<LogExcludeParameter> ExcludeParameters { get; init; } = excludeParameters ?? [];
 
-    public bool LogResponse { get; init; }
+    public bool LogResponse { get; init; } = logResponse;
 
-    /// <summary>
-    /// User information to be included in logs (defaults to "?" if empty).
-    /// </summary>
-    public string User { get; init; }
+    public string User { get; init; } = string.IsNullOrWhiteSpace(user) ? "?" : user;
 
-    public LogOptions()
+    public static readonly LogOptions Default = new(null);
+
+    public readonly bool Equals(LogOptions other)
     {
-        ExcludeParameters = [];
-        LogResponse = false;
-        User = "?";
+        return LogResponse == other.LogResponse
+            && User == other.User
+            && ExcludeParameters.SequenceEqual(other.ExcludeParameters);
     }
 
-    public LogOptions(params LogExcludeParameter[] excludeParameters)
+    public override readonly bool Equals(object? obj) => obj is LogOptions other && Equals(other);
+
+    public override readonly int GetHashCode()
     {
-        ExcludeParameters = excludeParameters;
-        LogResponse = false;
-        User = "?";
+        HashCode hash = new HashCode();
+        hash.Add(LogResponse);
+        hash.Add(User);
+        foreach (var param in ExcludeParameters)
+        {
+            hash.Add(param);
+        }
+
+        return hash.ToHashCode();
     }
 
-    public LogOptions(bool logResponse, params LogExcludeParameter[] excludeParameters)
-    {
-        ExcludeParameters = excludeParameters;
-        LogResponse = logResponse;
-        User = "?";
-    }
+    public static bool operator ==(LogOptions left, LogOptions right) => left.Equals(right);
 
-    public LogOptions(string? user, bool logResponse = false, params LogExcludeParameter[] excludeParameters)
-    {
-        ExcludeParameters = excludeParameters;
-        LogResponse = logResponse;
-        User = string.IsNullOrEmpty(user) ? "?" : user!;
-    }
-
-    public static readonly LogOptions Default = new();
+    public static bool operator !=(LogOptions left, LogOptions right) => !left.Equals(right);
 }

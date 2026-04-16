@@ -1,6 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NFramework.Mediator.Abstractions.Transactions;
 
-/// <summary>
-/// Only requests implementing this interface will run within a transaction scope.
-/// </summary>
+[SuppressMessage(
+    "Design",
+    "CA1040:Avoid empty interfaces",
+    Justification = "Marker interface for transactional requests."
+)]
 public interface ITransactionalRequest { }

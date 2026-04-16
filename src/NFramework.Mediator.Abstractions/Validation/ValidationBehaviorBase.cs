@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace NFramework.Mediator.Abstractions.Validation;
@@ -10,69 +5,78 @@ namespace NFramework.Mediator.Abstractions.Validation;
 /// <summary>
 /// Orchestrates input validation and logs failures as warnings to prevent silent invalid state processing.
 /// </summary>
-public abstract class ValidationBehaviorBase<TRequest, TResponse>
+public abstract class ValidationBehaviorBase<TRequest, TResponse>(
+    ILogger<ValidationBehaviorBase<TRequest, TResponse>> logger,
+    IValidationExceptionFactory? exceptionFactory = null
+)
 {
-    private readonly ILogger<ValidationBehaviorBase<TRequest, TResponse>> _logger;
-    private readonly IValidationExceptionFactory? _exceptionFactory;
+    private readonly ILogger<ValidationBehaviorBase<TRequest, TResponse>> _logger = logger;
+    private readonly IValidationExceptionFactory? _exceptionFactory = exceptionFactory;
 
-    protected ValidationBehaviorBase(
-        ILogger<ValidationBehaviorBase<TRequest, TResponse>> logger,
-        IValidationExceptionFactory? exceptionFactory = null
-    )
-    {
-        _logger = logger;
-        _exceptionFactory = exceptionFactory;
-    }
+    private static readonly Action<ILogger, string, string, Exception?> LogValidationFailureAction =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Warning,
+            new EventId(1, nameof(HandleAsync)),
+            "Validation failed for {RequestName}. Errors: {Errors}"
+        );
 
+    /// <returns>The response from the next handler in the pipeline.</returns>
     protected async ValueTask<TResponse> HandleAsync(
         TRequest request,
         Func<CancellationToken, ValueTask<TResponse>> next,
         CancellationToken cancellationToken
     )
     {
+        ArgumentNullException.ThrowIfNull(next);
+
         if (request is not IValidatableRequest)
         {
-            return await next(cancellationToken);
+            return await next(cancellationToken).ConfigureAwait(false);
         }
 
         var validators = GetValidators();
         if (validators.Any())
         {
             var validationResults = await Task.WhenAll(
-                validators.Select(v => v.ValidateAsync(request, cancellationToken).AsTask())
-            );
+                    validators.Select(v => v.ValidateAsync(request, cancellationToken).AsTask())
+                )
+                .ConfigureAwait(false);
 
-            var failures = validationResults.SelectMany(r => r).Where(f => f != null).ToList();
+            List<IValidationError> failures = [.. validationResults.SelectMany(r => r).Where(f => f != null)];
 
             if (failures.Count != 0)
             {
-                _logger.LogWarning(
-                    "Validation failed for {RequestName}. Errors: {Errors}",
-                    typeof(TRequest).Name,
-                    string.Join("; ", failures.Select(f => $"{f.Code}: {f.Message}"))
-                );
+                if (_logger.IsEnabled(LogLevel.Warning))
+                {
+                    LogValidationFailureAction(
+                        _logger,
+                        typeof(TRequest).Name,
+                        string.Join("; ", failures.Select(f => $"{f.Code}: {f.Message}")),
+                        null
+                    );
+                }
 
                 throw CreateValidationException(failures);
             }
         }
 
-        return await next(cancellationToken);
+        return await next(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Implement to provide the validators for the request.
+    /// </summary>
+    /// <returns>An enumeration of validators.</returns>
     protected abstract IEnumerable<IValidator<TRequest>> GetValidators();
 
     /// <summary>
-    /// Uses <see cref="IValidationExceptionFactory"/> if provided; otherwise falls back to <see cref="InvalidOperationException"/>.
+    /// Uses <see cref="IValidationExceptionFactory"/> if provided; otherwise falls back to <see cref="ValidationException"/>.
     /// Override to support specific validation libraries' exception types.
     /// </summary>
     protected virtual Exception CreateValidationException(IEnumerable<IValidationError> errors)
     {
-        if (_exceptionFactory != null)
-        {
-            return _exceptionFactory.CreateValidationException(errors);
-        }
-
-        string errorMessages = string.Join("; ", errors.Select(e => $"{e.Code}: {e.Message}"));
-        return new InvalidOperationException($"Validation failed: {errorMessages}");
+        return _exceptionFactory is not null
+            ? _exceptionFactory.CreateValidationException(errors)
+            : new ValidationException(errors);
     }
 }

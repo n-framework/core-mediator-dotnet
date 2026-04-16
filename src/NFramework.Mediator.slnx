@@ -1,6 +1,8 @@
 <Solution>
   <Project Path="../tests/unit/NFramework.Mediator.Tests/NFramework.Mediator.Tests.csproj" />
   <Project Path="../tests/unit/NFramework.Mediator.Abstractions.Tests/NFramework.Mediator.Abstractions.Tests.csproj" />
-  <Project Path="NFramework.Mediator.MartinothamarMediator/NFramework.Mediator.MartinothamarMediator.csproj" />
+  <Project Path="../tests/unit/NFramework.Mediator.Mediator.Validation.FluentValidation.Tests/NFramework.Mediator.Mediator.Validation.FluentValidation.Tests.csproj" />
+  <Project Path="NFramework.Mediator.Mediator/NFramework.Mediator.Mediator.csproj" />
   <Project Path="NFramework.Mediator.Abstractions/NFramework.Mediator.Abstractions.csproj" />
+  <Project Path="NFramework.Mediator.Mediator.Validation.FluentValidation/NFramework.Mediator.Mediator.Validation.FluentValidation.csproj" />
 </Solution>

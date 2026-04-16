@@ -5,14 +5,35 @@ namespace NFramework.Mediator.Abstractions.Caching;
 /// <summary>
 /// Invalidates the cache for specified patterns ONLY if the request completes successfully.
 /// </summary>
-public abstract class CacheRemovingBehaviorBase<TRequest, TResponse>
+public abstract class CacheRemovingBehaviorBase<TRequest, TResponse>(
+    ILogger<CacheRemovingBehaviorBase<TRequest, TResponse>> logger
+)
 {
-    private readonly ILogger<CacheRemovingBehaviorBase<TRequest, TResponse>> _logger;
+    private readonly ILogger<CacheRemovingBehaviorBase<TRequest, TResponse>> _logger = logger;
 
-    protected CacheRemovingBehaviorBase(ILogger<CacheRemovingBehaviorBase<TRequest, TResponse>> logger)
-    {
-        _logger = logger;
-    }
+    private static readonly Action<ILogger, string, Exception?> LogCacheRemovedAction = LoggerMessage.Define<string>(
+        LogLevel.Debug,
+        new EventId(1, nameof(HandleAsync)),
+        "Cache removed for pattern/group: {CacheKey}"
+    );
+
+    private static readonly Action<ILogger, string, Exception?> LogCacheRemovalErrorAction =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            new EventId(2, nameof(HandleAsync)),
+            "Failed to remove cache for pattern/group: {CacheKey}"
+        );
+
+    protected static readonly Action<ILogger, string, string, Exception?> LogRemovedKeyFromGroup = LoggerMessage.Define<
+        string,
+        string
+    >(LogLevel.Debug, new EventId(3, nameof(LogRemovedKeyFromGroup)), "Removed key {CacheKey} from group {GroupKey}");
+
+    protected static readonly Action<ILogger, string, Exception?> LogCorruptedGroupKey = LoggerMessage.Define<string>(
+        LogLevel.Warning,
+        new EventId(4, nameof(LogCorruptedGroupKey)),
+        "Pattern {Pattern} is not a valid group key JSON or data is corrupted. Deleting corrupted group key."
+    );
 
     protected async ValueTask<TResponse> HandleAsync(
         TRequest request,
@@ -20,12 +41,12 @@ public abstract class CacheRemovingBehaviorBase<TRequest, TResponse>
         CancellationToken cancellationToken
     )
     {
-        if (request is not ICacheRemoverRequest remover)
-        {
-            return await next(cancellationToken);
-        }
+        ArgumentNullException.ThrowIfNull(next);
 
-        var response = await next(cancellationToken);
+        if (request is not ICacheRemoverRequest remover)
+            return await next(cancellationToken).ConfigureAwait(false);
+
+        var response = await next(cancellationToken).ConfigureAwait(false);
 
         if (remover.CacheKeyPatterns != null)
         {
@@ -33,12 +54,12 @@ public abstract class CacheRemovingBehaviorBase<TRequest, TResponse>
             {
                 try
                 {
-                    await RemoveFromCacheAsync(pattern, cancellationToken);
-                    _logger.LogDebug("Cache removed for pattern/group: {CacheKey}", pattern);
+                    await RemoveFromCacheAsync(pattern, cancellationToken).ConfigureAwait(false);
+                    LogCacheRemovedAction(_logger, pattern, null);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogError(ex, "Failed to remove cache for pattern/group: {CacheKey}", pattern);
+                    LogCacheRemovalErrorAction(_logger, pattern, ex);
                 }
             }
         }
