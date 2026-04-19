@@ -10,5 +10,5 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "$REPO_ROOT"
 
 acore_log_section "🧪 Running .NET tests..."
-dotnet test src/NFramework.Mediator.slnx -m:1 -nodeReuse:false
+dotnet test NFramework.Mediator.slnx -m:1 -nodeReuse:false
 acore_log_success "✅ Test run complete!"
