@@ -222,7 +222,7 @@ dotnet_naming_style.local.required_suffix =
 dotnet_naming_style.local.word_separator =
 dotnet_naming_style.local.capitalization = camel_case
 
-[**/tests/**/*.cs]
+[{tests,src/**/*.Tests}/**/*.cs]
 # CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = none
 # IDE0058: Expression value is never used
