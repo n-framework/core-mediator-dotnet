@@ -10,7 +10,8 @@ public sealed class TransactionBehaviorTests
     [Fact]
     public async Task Handle_SkipsTransaction_WhenRequestDoesNotImplementITransactional()
     {
-        var logger = new LoggerFactory().CreateLogger<TransactionBehavior<NonTransactionalRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<TransactionBehavior<NonTransactionalRequest, string>>();
         TransactionBehavior<NonTransactionalRequest, string> behavior = new TransactionBehavior<
             NonTransactionalRequest,
             string
@@ -31,7 +32,8 @@ public sealed class TransactionBehaviorTests
     [Fact]
     public async Task Handle_CompletesTransaction_WhenHandlerSucceeds()
     {
-        var logger = new LoggerFactory().CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
         TransactionBehavior<TransactionalRequest, string> behavior = new TransactionBehavior<
             TransactionalRequest,
             string
@@ -52,7 +54,8 @@ public sealed class TransactionBehaviorTests
     [Fact]
     public async Task Handle_PropagatesException_WhenHandlerThrows()
     {
-        var logger = new LoggerFactory().CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
         TransactionBehavior<TransactionalRequest, string> behavior = new TransactionBehavior<
             TransactionalRequest,
             string
@@ -68,8 +71,9 @@ public sealed class TransactionBehaviorTests
     [Fact]
     public async Task Handle_RollsBackTransaction_WhenHandlerThrows()
     {
-        var logger = new LoggerFactory().CreateLogger<TestTransactionBehavior<TransactionalRequest, string>>();
-        FakeTransactionScope scope = new FakeTransactionScope();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<TestTransactionBehavior<TransactionalRequest, string>>();
+        await using var scope = new FakeTransactionScope();
         TestTransactionBehavior<TransactionalRequest, string> behavior = new TestTransactionBehavior<
             TransactionalRequest,
             string
@@ -90,11 +94,12 @@ public sealed class TransactionBehaviorTests
     [Fact]
     public async Task Handle_RespectsCancellationToken()
     {
-        CancellationTokenSource ctSource = new CancellationTokenSource();
+        using var ctSource = new CancellationTokenSource();
         var ct = ctSource.Token;
 
-        var logger = new LoggerFactory().CreateLogger<TestTransactionBehavior<TransactionalRequest, string>>();
-        FakeTransactionScope scope = new FakeTransactionScope();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<TestTransactionBehavior<TransactionalRequest, string>>();
+        await using var scope = new FakeTransactionScope();
         TestTransactionBehavior<TransactionalRequest, string> behavior = new TestTransactionBehavior<
             TransactionalRequest,
             string
@@ -115,7 +120,8 @@ public sealed class TransactionBehaviorTests
     [Fact]
     public void Handle_RespectsTimeoutConfiguration()
     {
-        var logger = new LoggerFactory().CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
         MediatorTransactionOptions options = new MediatorTransactionOptions
         {
             TransactionScopeTimeout = TimeSpan.FromSeconds(45),

@@ -19,7 +19,8 @@ public sealed class CacheRemovingBehaviorTests
     public async Task Handle_SkipsInvalidation_WhenRequestDoesNotImplementICacheRemover()
     {
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
-        var logger = new LoggerFactory().CreateLogger<CacheRemovingBehavior<NonRemovingRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CacheRemovingBehavior<NonRemovingRequest, string>>();
         CacheRemovingBehavior<NonRemovingRequest, string> behavior = new CacheRemovingBehavior<
             NonRemovingRequest,
             string
@@ -44,7 +45,8 @@ public sealed class CacheRemovingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync("product-key", It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
 
-        var logger = new LoggerFactory().CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
         CacheRemovingBehavior<CacheRemoverRequest, string> behavior = new CacheRemovingBehavior<
             CacheRemoverRequest,
             string
@@ -65,7 +67,8 @@ public sealed class CacheRemovingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync("products-group", It.IsAny<CancellationToken>())).ReturnsAsync(serializedGroup);
 
-        var logger = new LoggerFactory().CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
         CacheRemovingBehavior<CacheRemoverRequest, string> behavior = new CacheRemovingBehavior<
             CacheRemoverRequest,
             string
@@ -85,7 +88,8 @@ public sealed class CacheRemovingBehaviorTests
     public async Task Handle_InvalidatesOnlyAfterSuccessfulExecution()
     {
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
-        var logger = new LoggerFactory().CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
         CacheRemovingBehavior<CacheRemoverRequest, string> behavior = new CacheRemovingBehavior<
             CacheRemoverRequest,
             string
@@ -107,7 +111,8 @@ public sealed class CacheRemovingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync("corrupt-group", It.IsAny<CancellationToken>())).ReturnsAsync(corruptedData);
 
-        var logger = new LoggerFactory().CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CacheRemovingBehavior<CacheRemoverRequest, string>>();
         CacheRemovingBehavior<CacheRemoverRequest, string> behavior = new CacheRemovingBehavior<
             CacheRemoverRequest,
             string

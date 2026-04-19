@@ -11,7 +11,8 @@ public sealed class PerformanceBehaviorTests
     [Fact]
     public async Task Handle_SkipsMonitoring_WhenRequestDoesNotImplementIIntervalRequest()
     {
-        var logger = new LoggerFactory().CreateLogger<PerformanceBehavior<NonMonitoredRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<PerformanceBehavior<NonMonitoredRequest, string>>();
         PerformanceBehavior<NonMonitoredRequest, string> behavior = new PerformanceBehavior<
             NonMonitoredRequest,
             string
@@ -32,7 +33,8 @@ public sealed class PerformanceBehaviorTests
     [Fact]
     public async Task Handle_ReturnsResponse_ForFastRequests()
     {
-        var logger = new LoggerFactory().CreateLogger<PerformanceBehavior<MonitoredRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<PerformanceBehavior<MonitoredRequest, string>>();
         PerformanceBehavior<MonitoredRequest, string> behavior = new PerformanceBehavior<MonitoredRequest, string>(
             logger,
             new PerformanceOptions()
@@ -145,7 +147,8 @@ public sealed class PerformanceBehaviorTests
     [Fact]
     public async Task Handle_StillReturnsResponse_WhenHandlerThrows()
     {
-        var logger = new LoggerFactory().CreateLogger<PerformanceBehavior<MonitoredRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<PerformanceBehavior<MonitoredRequest, string>>();
         PerformanceBehavior<MonitoredRequest, string> behavior = new PerformanceBehavior<MonitoredRequest, string>(
             logger,
             new PerformanceOptions()

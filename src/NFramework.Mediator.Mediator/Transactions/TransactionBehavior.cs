@@ -18,6 +18,7 @@ public class TransactionBehavior<TRequest, TResponse>(
 
     protected override ValueTask<ITransactionScope> CreateTransactionScopeAsync(CancellationToken cancellationToken)
     {
+#pragma warning disable CA2000 // Dispose objects before losing scope - Ownership is transferred to the calling pipeline behavior
         TransactionScope transactionScope = new TransactionScope(
             TransactionScopeOption.Required,
             new System.Transactions.TransactionOptions
@@ -29,6 +30,7 @@ public class TransactionBehavior<TRequest, TResponse>(
         );
 
         return new ValueTask<ITransactionScope>(new SystemTransactionScope(transactionScope));
+#pragma warning restore CA2000
     }
 
     public async ValueTask<TResponse> Handle(

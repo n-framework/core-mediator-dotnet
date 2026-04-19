@@ -201,7 +201,7 @@ public sealed class AuthorizationBehaviorTests
     [Fact]
     public async Task Handle_RespectsCancellationToken()
     {
-        CancellationTokenSource ctSource = new CancellationTokenSource();
+        using var ctSource = new CancellationTokenSource();
         var ct = ctSource.Token;
 
         Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>> logger =

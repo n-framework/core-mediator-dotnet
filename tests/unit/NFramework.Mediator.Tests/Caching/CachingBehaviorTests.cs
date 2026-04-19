@@ -19,7 +19,8 @@ public sealed class CachingBehaviorTests
     public async Task Handle_SkipsCache_WhenRequestDoesNotImplementICacheable()
     {
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<NonCacheableRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<NonCacheableRequest, string>>();
         CachingBehavior<NonCacheableRequest, string> behavior = new CachingBehavior<NonCacheableRequest, string>(
             cache.Object,
             logger
@@ -45,7 +46,8 @@ public sealed class CachingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync("test-key", It.IsAny<CancellationToken>())).ReturnsAsync(cachedValue);
 
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<CacheableRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<CacheableRequest, string>>();
         CachingBehavior<CacheableRequest, string> behavior = new CachingBehavior<CacheableRequest, string>(
             cache.Object,
             logger
@@ -69,7 +71,8 @@ public sealed class CachingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
 
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<CacheableRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<CacheableRequest, string>>();
         CachingBehavior<CacheableRequest, string> behavior = new CachingBehavior<CacheableRequest, string>(
             cache.Object,
             logger
@@ -98,7 +101,8 @@ public sealed class CachingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync("test-key", It.IsAny<CancellationToken>())).ReturnsAsync(corruptedData);
 
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<CacheableRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<CacheableRequest, string>>();
         CachingBehavior<CacheableRequest, string> behavior = new CachingBehavior<CacheableRequest, string>(
             cache.Object,
             logger
@@ -117,7 +121,8 @@ public sealed class CachingBehaviorTests
         _ = cache.Setup(c => c.GetAsync("test-key", It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
         _ = cache.Setup(c => c.GetAsync("products-group", It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
 
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<CacheableWithGroupRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<CacheableWithGroupRequest, string>>();
         CachingBehavior<CacheableWithGroupRequest, string> behavior = new CachingBehavior<
             CacheableWithGroupRequest,
             string
@@ -222,7 +227,7 @@ public sealed class CachingBehaviorTests
     [Fact]
     public async Task Handle_RespectsCancellationToken()
     {
-        CancellationTokenSource ctSource = new CancellationTokenSource();
+        using var ctSource = new CancellationTokenSource();
         var ct = ctSource.Token;
 
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
@@ -262,7 +267,8 @@ public sealed class CachingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
 
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<CacheableRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<CacheableRequest, string>>();
         CachingBehavior<CacheableRequest, string> behavior = new CachingBehavior<CacheableRequest, string>(
             cache.Object,
             logger
@@ -295,7 +301,8 @@ public sealed class CachingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
 
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<CacheableRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<CacheableRequest, string>>();
         CachingBehavior<CacheableRequest, string> behavior = new CachingBehavior<CacheableRequest, string>(
             cache.Object,
             logger
@@ -326,7 +333,8 @@ public sealed class CachingBehaviorTests
         Mock<IDistributedCache> cache = new Mock<IDistributedCache>();
         _ = cache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
 
-        var logger = new LoggerFactory().CreateLogger<CachingBehavior<CacheableWithSlidingRequest, string>>();
+        using var loggerFactory = new LoggerFactory();
+        var logger = loggerFactory.CreateLogger<CachingBehavior<CacheableWithSlidingRequest, string>>();
         CachingBehavior<CacheableWithSlidingRequest, string> behavior = new CachingBehavior<
             CacheableWithSlidingRequest,
             string
