@@ -60,7 +60,7 @@ public sealed class PerformanceBehaviorTests
         );
         MessageHandlerDelegate<MonitoredRequest, string> next = async (_, _) =>
         {
-            await Task.Delay(100).ConfigureAwait(false);
+            await Task.Delay(100, CancellationToken.None).ConfigureAwait(false);
             return "slow-response";
         };
 
@@ -93,7 +93,7 @@ public sealed class PerformanceBehaviorTests
         );
         MessageHandlerDelegate<MonitoredRequest, string> next = async (_, _) =>
         {
-            await Task.Delay(50).ConfigureAwait(false);
+            await Task.Delay(50, CancellationToken.None).ConfigureAwait(false);
             return "zero-threshold";
         };
 
@@ -125,7 +125,7 @@ public sealed class PerformanceBehaviorTests
         );
         MessageHandlerDelegate<MonitoredRequest, string> next = async (_, _) =>
         {
-            await Task.Delay(50).ConfigureAwait(false);
+            await Task.Delay(50, CancellationToken.None).ConfigureAwait(false);
             return "negative-threshold";
         };
 

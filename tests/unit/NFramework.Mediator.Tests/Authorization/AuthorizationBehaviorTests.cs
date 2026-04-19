@@ -224,11 +224,13 @@ public sealed class AuthorizationBehaviorTests
             return ValueTask.FromResult("authorized");
         };
 
-        string result = await behavior.Handle(new SecuredRequest { RequiredRoles = new[] { "Admin" } }, next, ct);
+        string result = await behavior.Handle(new SecuredRequest { RequiredRoles = AdminRole }, next, ct);
 
         result.ShouldBe("authorized");
         securityContext.Verify();
     }
+
+    private static readonly string[] AdminRole = ["Admin"];
 
     internal sealed record UnsecuredRequest : IMessage;
 
