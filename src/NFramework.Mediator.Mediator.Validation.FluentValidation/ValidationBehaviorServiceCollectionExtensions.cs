@@ -10,7 +10,7 @@ public static class ValidationBehaviorServiceCollectionExtensions
         /// <summary>
         /// Registers the NFramework FluentValidation behavior.
         /// </summary>
-        public IServiceCollection AddNFrameworkFluentValidation()
+        public IServiceCollection AddNFrameworkValidationWithFluentValidation()
         {
             return services.AddTransient(
                 typeof(IPipelineBehavior<,>),
