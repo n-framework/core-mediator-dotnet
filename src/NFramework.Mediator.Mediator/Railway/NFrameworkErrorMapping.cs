@@ -1,7 +1,7 @@
 using NFramework.Mediator.Abstractions.Validation;
 using UnionRailway;
 
-namespace NFramework.Mediator.Mediator.Railway.UnionRailway;
+namespace NFramework.Mediator.Mediator.Railway;
 
 /// <summary>
 /// Translates NFramework framework exceptions into UnionRailway <see cref="UnionError"/> cases.
@@ -36,7 +36,7 @@ public static class NFrameworkErrorMapping
     }
 
     /// <summary>
-    /// Determines whether the adapter recognizes the exception as a framework error with a
+    /// Determines whether the framework recognizes the exception as a framework error with a
     /// dedicated <see cref="UnionError"/> mapping (as opposed to an unexpected system failure).
     /// </summary>
     /// <param name="exception">The exception to inspect.</param>
@@ -58,7 +58,7 @@ public static class NFrameworkErrorMapping
     }
 
     /// <summary>
-    /// The persistence package is not referenced here to keep the mediator adapter free of a
+    /// The persistence package is not referenced here to keep the mediator framework free of a
     /// persistence dependency, so the concurrency conflict is matched by its type name.
     /// </summary>
     private static bool IsConcurrencyConflict(Exception exception) =>

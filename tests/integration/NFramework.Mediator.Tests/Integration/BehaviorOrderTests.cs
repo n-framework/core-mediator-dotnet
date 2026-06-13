@@ -1,11 +1,9 @@
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using NFramework.Mediator.Mediator.Authorization;
 using NFramework.Mediator.Mediator.Caching;
 using NFramework.Mediator.Mediator.Configuration;
 using NFramework.Mediator.Mediator.Logging;
 using NFramework.Mediator.Mediator.Performance;
-using NFramework.Mediator.Mediator.Transactions;
 using NFramework.Mediator.Mediator.Validation.FluentValidation;
 using Shouldly;
 using Xunit;
@@ -22,11 +20,11 @@ public class BehaviorOrderTests
         // Arrange
         var services = new ServiceCollection();
 
-        // Act - Register behaviors in the desired order
+        // Act - Register remaining behaviors in the desired order
+        // Authorization and Transaction are now handled by the railway pipeline
+        // via AddNFrameworkRailwayBehaviors (closed registrations from source generator).
         _ = services
             .AddNFrameworkLogging()
-            .AddNFrameworkAuthorization()
-            .AddNFrameworkTransactions()
             .AddNFrameworkCaching()
             .AddNFrameworkPerformance()
             .AddNFrameworkFluentValidation();
@@ -42,16 +40,13 @@ public class BehaviorOrderTests
             .Select(sd => sd.ImplementationType)
             .ToList();
 
-        // Assert
-        // Expected order matches registration order in martinothamar/Mediator
-        registeredBehaviors.Count.ShouldBe(7);
+        // Assert - expected order matches registration order in martinothamar/Mediator
+        registeredBehaviors.Count.ShouldBe(5);
 
         registeredBehaviors[0].ShouldBe(typeof(LoggingBehavior<,>));
-        registeredBehaviors[1].ShouldBe(typeof(AuthorizationBehavior<,>));
-        registeredBehaviors[2].ShouldBe(typeof(TransactionBehavior<,>));
-        registeredBehaviors[3].ShouldBe(typeof(CachingBehavior<,>));
-        registeredBehaviors[4].ShouldBe(typeof(CacheRemovingBehavior<,>));
-        registeredBehaviors[5].ShouldBe(typeof(PerformanceBehavior<,>));
-        registeredBehaviors[6].ShouldBe(typeof(ValidationBehavior<,>));
+        registeredBehaviors[1].ShouldBe(typeof(CachingBehavior<,>));
+        registeredBehaviors[2].ShouldBe(typeof(CacheRemovingBehavior<,>));
+        registeredBehaviors[3].ShouldBe(typeof(PerformanceBehavior<,>));
+        registeredBehaviors[4].ShouldBe(typeof(ValidationBehavior<,>));
     }
 }

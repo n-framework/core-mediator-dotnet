@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace NFramework.Mediator.Mediator.Railway.UnionRailway.Generator;
+namespace NFramework.Mediator.Mediator.Generators;
 
 /// <summary>
 /// Emits closed <c>IPipelineBehavior</c> registrations for every concrete request that implements
@@ -13,7 +13,7 @@ namespace NFramework.Mediator.Mediator.Railway.UnionRailway.Generator;
 [Generator(LanguageNames.CSharp)]
 public sealed class RailwayRegistrationGenerator : IIncrementalGenerator
 {
-    private const string GeneratedNamespace = "NFramework.Mediator.Mediator.Railway.UnionRailway";
+    private const string GeneratedNamespace = "NFramework.Mediator.Mediator.Railway";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -51,7 +51,7 @@ public sealed class RailwayRegistrationGenerator : IIncrementalGenerator
         foreach (INamedTypeSymbol interfaceSymbol in symbol.AllInterfaces)
         {
             if (interfaceSymbol.MetadataName == "IRailRequest`1"
-                && interfaceSymbol.ContainingNamespace.ToDisplayString() == GeneratedNamespace
+                && interfaceSymbol.ContainingNamespace.ToDisplayString() == "NFramework.Mediator.Abstractions"
                 && interfaceSymbol.TypeArguments.Length == 1)
             {
                 string request = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -75,26 +75,39 @@ public sealed class RailwayRegistrationGenerator : IIncrementalGenerator
         builder.AppendLine();
         builder.AppendLine($"namespace {GeneratedNamespace};");
         builder.AppendLine();
-        builder.AppendLine("/// <summary>Generated closed registrations for railway validation behaviors.</summary>");
+        builder.AppendLine("/// <summary>Generated closed registrations for railway pipeline behaviors.</summary>");
         builder.AppendLine("public static class RailwayGeneratedRegistration");
         builder.AppendLine("{");
-        builder.AppendLine("    /// <summary>Registers a railway validation behavior for each discovered IRailRequest type.</summary>");
-        builder.AppendLine("    public static IServiceCollection AddNFrameworkRailwayValidation(this IServiceCollection services)");
+        builder.AppendLine("    /// <summary>Registers all railway behaviors (validation, authorization, transaction) for each discovered IRailRequest type.</summary>");
+        builder.AppendLine("    public static IServiceCollection AddNFrameworkRailwayBehaviors(this IServiceCollection services)");
         builder.AppendLine("    {");
         builder.AppendLine("        System.ArgumentNullException.ThrowIfNull(services);");
         builder.AppendLine();
 
         foreach (RailRequestModel model in distinct)
         {
+            // Order matters: validation → authorization → transaction.
             builder.AppendLine(
                 $"        services.AddTransient<IPipelineBehavior<{model.RequestType}, global::UnionRailway.Rail<{model.ValueType}>>, "
-                    + $"global::{GeneratedNamespace}.RailValidationBehavior<{model.RequestType}, {model.ValueType}>>();"
+                    + $"global::NFramework.Mediator.Mediator.Validation.ValidationBehavior<{model.RequestType}, {model.ValueType}>>();"
+            );
+            builder.AppendLine(
+                $"        services.AddTransient<IPipelineBehavior<{model.RequestType}, global::UnionRailway.Rail<{model.ValueType}>>, "
+                    + $"global::NFramework.Mediator.Mediator.Authorization.AuthorizationBehavior<{model.RequestType}, {model.ValueType}>>();"
+            );
+            builder.AppendLine(
+                $"        services.AddTransient<IPipelineBehavior<{model.RequestType}, global::UnionRailway.Rail<{model.ValueType}>>, "
+                    + $"global::NFramework.Mediator.Mediator.Transactions.TransactionBehavior<{model.RequestType}, {model.ValueType}>>();"
             );
         }
 
         builder.AppendLine();
         builder.AppendLine("        return services;");
         builder.AppendLine("    }");
+        builder.AppendLine();
+        builder.AppendLine("    /// <summary>Backward-compatible alias for <see cref=\"AddNFrameworkRailwayBehaviors\"/>.</summary>");
+        builder.AppendLine("    public static IServiceCollection AddNFrameworkRailwayValidation(this IServiceCollection services)");
+        builder.AppendLine("        => services.AddNFrameworkRailwayBehaviors();");
         builder.AppendLine("}");
 
         context.AddSource("RailwayGeneratedRegistration.g.cs", builder.ToString());

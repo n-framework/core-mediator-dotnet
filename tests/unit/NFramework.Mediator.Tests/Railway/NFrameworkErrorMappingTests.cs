@@ -1,8 +1,8 @@
 using NFramework.Mediator.Abstractions.Validation;
-using NFramework.Mediator.Mediator.Railway.UnionRailway;
+using NFramework.Mediator.Mediator.Railway;
 using UnionRailway;
 
-namespace NFramework.Mediator.Mediator.Railway.UnionRailway.Tests;
+namespace NFramework.Mediator.Tests;
 
 public sealed class NFrameworkErrorMappingTests
 {

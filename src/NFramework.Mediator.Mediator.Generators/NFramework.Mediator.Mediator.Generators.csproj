@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>NFramework.Mediator.Mediator.Railway.UnionRailway.Generator</AssemblyName>
-    <RootNamespace>NFramework.Mediator.Mediator.Railway.UnionRailway.Generator</RootNamespace>
+    <AssemblyName>NFramework.Mediator.Mediator.Generators</AssemblyName>
+    <RootNamespace>NFramework.Mediator.Mediator.Generators</RootNamespace>
     <Description>Roslyn incremental generator that emits closed railway validation behavior registrations for IRailRequest types.</Description>
-    <PackageId>NFramework.Mediator.Mediator.Railway.UnionRailway.Generator</PackageId>
+    <PackageId>NFramework.Mediator.Mediator.Generators</PackageId>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>

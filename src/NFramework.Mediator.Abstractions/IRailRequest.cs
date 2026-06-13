@@ -1,7 +1,7 @@
 using Mediator;
 using UnionRailway;
 
-namespace NFramework.Mediator.Mediator.Railway.UnionRailway;
+namespace NFramework.Mediator.Abstractions;
 
 /// <summary>
 /// Marks a request whose response is a <see cref="Rail{TValue}"/>, enabling the railway pipeline

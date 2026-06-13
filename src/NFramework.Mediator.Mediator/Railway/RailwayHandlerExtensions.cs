@@ -1,7 +1,7 @@
 using NFramework.Mediator.Abstractions.Validation;
 using UnionRailway;
 
-namespace NFramework.Mediator.Mediator.Railway.UnionRailway;
+namespace NFramework.Mediator.Mediator.Railway;
 
 /// <summary>
 /// Helpers for handlers that produce <see cref="Rail{T}"/> results using NFramework's validation vocabulary.

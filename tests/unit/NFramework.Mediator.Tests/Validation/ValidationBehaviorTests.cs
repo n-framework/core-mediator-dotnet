@@ -1,17 +1,21 @@
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
+using NFramework.Mediator.Abstractions.Authorization;
 using NFramework.Mediator.Abstractions.Validation;
-using NFramework.Mediator.Mediator.Railway.UnionRailway;
+using NFramework.Mediator.Mediator.Railway;
+using NFramework.Mediator.Mediator.Transactions;
 using UnionRailway;
+using NFramework.Mediator.Abstractions;
+using NFramework.Mediator.Tests.Railway;
 
-namespace NFramework.Mediator.Mediator.Railway.UnionRailway.Tests;
+namespace NFramework.Mediator.Tests.Validation;
 
-public sealed class RailValidationBehaviorTests
+public sealed class ValidationBehaviorTests
 {
     [Fact]
     public async Task InvalidRequest_ShortCircuitsWithRailValidationFailure()
     {
-        IMediator mediator = BuildMediator(valid: false, out HandlerSpy spy);
+        IMediator mediator = BuildMediator(valid: false, out HandlerExecutionSpy spy);
 
         Rail<int> result = await mediator.Send(new CreateThing("bad"));
 
@@ -24,7 +28,7 @@ public sealed class RailValidationBehaviorTests
     [Fact]
     public async Task ValidRequest_ExecutesHandlerAndReturnsSuccess()
     {
-        IMediator mediator = BuildMediator(valid: true, out HandlerSpy spy);
+        IMediator mediator = BuildMediator(valid: true, out HandlerExecutionSpy spy);
 
         Rail<int> result = await mediator.Send(new CreateThing("good"));
 
@@ -36,14 +40,7 @@ public sealed class RailValidationBehaviorTests
     [Fact]
     public async Task NoValidators_PassesThroughToHandler()
     {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddMediator();
-        services.AddNFrameworkRailwayValidation();
-        var spy = new HandlerSpy();
-        services.AddSingleton(spy);
-
-        IMediator mediator = services.BuildServiceProvider().GetRequiredService<IMediator>();
+        IMediator mediator = BuildMediator(valid: true, out _, registerValidator: false);
 
         Rail<int> result = await mediator.Send(new CreateThing("anything"));
 
@@ -51,26 +48,21 @@ public sealed class RailValidationBehaviorTests
         value.ShouldBe(42);
     }
 
-    private static IMediator BuildMediator(bool valid, out HandlerSpy spy)
+    private static IMediator BuildMediator(bool valid, out HandlerExecutionSpy spy, bool registerValidator = true)
     {
-        spy = new HandlerSpy();
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddMediator();
-        services.AddNFrameworkRailwayValidation();
-        services.AddSingleton(spy);
-        services.AddSingleton<IValidator<CreateThing>>(new CreateThingValidator(valid));
+        spy = new HandlerExecutionSpy();
+        IServiceCollection services = RailwayTestHost.CreateServices(spy);
+        if (registerValidator)
+        {
+            services.AddSingleton<IValidator<CreateThing>>(new CreateThingValidator(valid));
+        }
+
         return services.BuildServiceProvider().GetRequiredService<IMediator>();
     }
 
     public sealed record CreateThing(string Name) : IRailRequest<int>;
 
-    public sealed class HandlerSpy
-    {
-        public bool Executed { get; set; }
-    }
-
-    public sealed class CreateThingHandler(HandlerSpy spy) : IRequestHandler<CreateThing, Rail<int>>
+    public sealed class CreateThingHandler(HandlerExecutionSpy spy) : IRequestHandler<CreateThing, Rail<int>>
     {
         public ValueTask<Rail<int>> Handle(CreateThing request, CancellationToken cancellationToken)
         {

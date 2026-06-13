@@ -15,6 +15,9 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
+    <PackageReference Include="Mediator.SourceGenerator" Version="3.0.2" PrivateAssets="all" />
+    <PackageReference Include="UnionRailway" Version="1.2.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,5 +29,7 @@
     <ProjectReference Include="..\..\..\src\NFramework.Mediator.Mediator\NFramework.Mediator.Mediator.csproj" />
     <ProjectReference Include="..\..\..\src\NFramework.Mediator.Abstractions\NFramework.Mediator.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\src\NFramework.Mediator.Mediator.Validation.FluentValidation\NFramework.Mediator.Mediator.Validation.FluentValidation.csproj" />
+    <ProjectReference Include="..\..\..\src\NFramework.Mediator.Mediator.Generators\NFramework.Mediator.Mediator.Generators.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

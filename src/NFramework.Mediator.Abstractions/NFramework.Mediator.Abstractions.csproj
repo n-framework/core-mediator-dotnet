@@ -12,6 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
+    <PackageReference Include="UnionRailway" Version="1.2.1" />
   </ItemGroup>
 </Project>
