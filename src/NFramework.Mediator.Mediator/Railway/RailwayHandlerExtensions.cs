@@ -18,16 +18,6 @@ public static class RailwayHandlerExtensions
     public static Rail<T> ToValidationFailure<T>(this IEnumerable<IValidationError> errors)
     {
         ArgumentNullException.ThrowIfNull(errors);
-
-        Dictionary<string, string[]> fields = errors
-            .Where(error => error is not null)
-            .GroupBy(error =>
-                string.IsNullOrWhiteSpace(error.PropertyName)
-                    ? NFrameworkErrorMapping.UnscopedValidationKey
-                    : error.PropertyName
-            )
-            .ToDictionary(group => group.Key, group => group.Select(error => error.Message).ToArray());
-
-        return new UnionError.Validation(fields);
+        return new UnionError.Validation(NFrameworkErrorMapping.GroupValidationErrors(errors));
     }
 }

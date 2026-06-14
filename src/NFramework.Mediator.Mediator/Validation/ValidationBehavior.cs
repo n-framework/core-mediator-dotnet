@@ -19,7 +19,7 @@ public sealed class ValidationBehavior<TRequest, TValue>(
 ) : IPipelineBehavior<TRequest, Rail<TValue>>
     where TRequest : IRailRequest<TValue>
 {
-    private readonly IEnumerable<IValidator<TRequest>> _validators = validators;
+    private readonly IReadOnlyList<IValidator<TRequest>> _validators = validators.ToList();
     private readonly ILogger<ValidationBehavior<TRequest, TValue>> _logger = logger;
 
     private static readonly Action<ILogger, string, string, Exception?> LogValidationFailureAction =
@@ -38,7 +38,7 @@ public sealed class ValidationBehavior<TRequest, TValue>(
     {
         ArgumentNullException.ThrowIfNull(next);
 
-        if (!_validators.Any())
+        if (_validators.Count == 0)
         {
             return await next(request, cancellationToken).ConfigureAwait(false);
         }

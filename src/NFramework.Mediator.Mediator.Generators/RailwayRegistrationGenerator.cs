@@ -65,6 +65,9 @@ public sealed class RailwayRegistrationGenerator : IIncrementalGenerator
 
     private static void Emit(SourceProductionContext context, ImmutableArray<RailRequestModel> models)
     {
+        if (models.IsEmpty)
+            return;
+
         ImmutableArray<RailRequestModel> distinct = [.. models.Distinct()];
 
         var builder = new StringBuilder();

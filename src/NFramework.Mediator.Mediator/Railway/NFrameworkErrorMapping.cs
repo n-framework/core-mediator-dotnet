@@ -48,14 +48,22 @@ public static class NFrameworkErrorMapping
         return exception is ValidationException or UnauthorizedAccessException || IsConcurrencyConflict(exception);
     }
 
-    private static UnionError ToValidationError(ValidationException exception)
-    {
-        Dictionary<string, string[]> fields = exception
-            .Errors.GroupBy(error => NormalizePropertyName(error.PropertyName))
+    /// <summary>
+    /// Groups validation errors by property name into the dictionary shape expected by
+    /// <see cref="UnionError.Validation"/>.
+    /// </summary>
+    internal static Dictionary<string, string[]> GroupValidationErrors(IEnumerable<IValidationError> errors) =>
+        errors
+            .Where(error => error is not null)
+            .GroupBy(error =>
+                string.IsNullOrWhiteSpace(error.PropertyName)
+                    ? UnscopedValidationKey
+                    : error.PropertyName
+            )
             .ToDictionary(group => group.Key, group => group.Select(error => error.Message).ToArray());
 
-        return UnionError.CreateValidation(fields);
-    }
+    private static UnionError ToValidationError(ValidationException exception) =>
+        UnionError.CreateValidation(GroupValidationErrors(exception.Errors));
 
     /// <summary>
     /// The persistence package is not referenced here to keep the mediator framework free of a
@@ -63,7 +71,4 @@ public static class NFrameworkErrorMapping
     /// </summary>
     private static bool IsConcurrencyConflict(Exception exception) =>
         string.Equals(exception.GetType().Name, ConcurrencyConflictExceptionTypeName, StringComparison.Ordinal);
-
-    private static string NormalizePropertyName(string? propertyName) =>
-        string.IsNullOrWhiteSpace(propertyName) ? UnscopedValidationKey : propertyName;
 }

@@ -30,8 +30,7 @@ public sealed class AuthorizationBehaviorTests
         Rail<int> result = await mediator.Send(new SecuredRailRequest());
 
         result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
-        error!.Value.TryGet(out UnionError.Forbidden forbidden).ShouldBeTrue();
-        forbidden.Reason.ShouldContain("Admin");
+        error!.Value.TryGet(out UnionError.Forbidden _).ShouldBeTrue();
         spy.Executed.ShouldBeFalse();
     }
 

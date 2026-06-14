@@ -65,7 +65,7 @@ public sealed class TransactionBehavior<TRequest, TValue>(
                 {
                     await transactionScope.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 }
-                catch (InvalidOperationException rollbackEx)
+                catch (Exception rollbackEx) when (rollbackEx is not OperationCanceledException)
                 {
                     LogRollbackError(logger, typeof(TRequest).Name, rollbackEx);
                 }

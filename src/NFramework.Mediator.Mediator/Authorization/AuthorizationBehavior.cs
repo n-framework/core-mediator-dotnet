@@ -67,18 +67,14 @@ public sealed class AuthorizationBehavior<TRequest, TValue>(
 
         if (requiredRoles.Count > 0 && !securityContext.HasAnyRole(requiredRoles))
         {
-            string roles = string.Join(", ", requiredRoles);
-            string requestName = typeof(TRequest).Name;
-            LogUserLacksRequiredRoles(logger, roles, requestName, null);
-            return new UnionError.Forbidden($"User lacks required roles ({roles}) for request {requestName}");
+            LogUserLacksRequiredRoles(logger, string.Join(", ", requiredRoles), typeof(TRequest).Name, null);
+            return new UnionError.Forbidden("Insufficient permissions.");
         }
 
         if (requiredOperations.Count > 0 && !securityContext.HasAllOperations(requiredOperations))
         {
-            string operations = string.Join(", ", requiredOperations);
-            string requestName = typeof(TRequest).Name;
-            LogUserLacksRequiredPermissions(logger, operations, requestName, null);
-            return new UnionError.Forbidden($"User lacks required permissions ({operations}) for request {requestName}");
+            LogUserLacksRequiredPermissions(logger, string.Join(", ", requiredOperations), typeof(TRequest).Name, null);
+            return new UnionError.Forbidden("Insufficient permissions.");
         }
 
         return await next(request, cancellationToken).ConfigureAwait(false);
