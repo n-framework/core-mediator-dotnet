@@ -51,7 +51,10 @@ public sealed class TransactionBehavior<TRequest, TValue>(
             try
             {
                 Rail<TValue> response = await next(request, cancellationToken).ConfigureAwait(false);
-                await transactionScope.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+                if (response.IsSuccess(out _, out _))
+                    await transactionScope.CommitAsync(cancellationToken).ConfigureAwait(false);
+
                 return response;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
