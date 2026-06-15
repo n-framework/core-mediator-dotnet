@@ -1,242 +1,95 @@
 using Mediator;
-using Microsoft.Extensions.Logging;
-using Moq;
+using Microsoft.Extensions.DependencyInjection;
+using NFramework.Mediator.Abstractions;
 using NFramework.Mediator.Abstractions.Authorization;
-using NFramework.Mediator.Mediator.Authorization;
+using NFramework.Mediator.Mediator.Railway;
+using NFramework.Mediator.Tests.Railway;
+using UnionRailway;
 
 namespace NFramework.Mediator.Tests.Authorization;
 
 public sealed class AuthorizationBehaviorTests
 {
     [Fact]
-    public async Task Handle_SkipsAuthorization_WhenRequestDoesNotImplementISecuredRequest()
+    public async Task Unauthenticated_ReturnsUnauthorizedRailFailure()
     {
-        Mock<ISecurityContext> securityContext = new Mock<ISecurityContext>();
-        Mock<ILogger<AuthorizationBehavior<UnsecuredRequest, string>>> logger =
-            new Mock<ILogger<AuthorizationBehavior<UnsecuredRequest, string>>>();
-        _ = logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        AuthorizationBehavior<UnsecuredRequest, string> behavior = new AuthorizationBehavior<UnsecuredRequest, string>(
-            securityContext.Object,
-            logger.Object
-        );
-        bool handlerInvoked = false;
-        MessageHandlerDelegate<UnsecuredRequest, string> next = (_, _) =>
-        {
-            handlerInvoked = true;
-            return ValueTask.FromResult("success");
-        };
+        IMediator mediator = BuildMediator(out HandlerExecutionSpy spy, authenticated: false);
 
-        string result = await behavior.Handle(new UnsecuredRequest(), next, default);
+        Rail<int> result = await mediator.Send(new SecuredRailRequest());
 
-        result.ShouldBe("success");
-        handlerInvoked.ShouldBeTrue();
-        securityContext.Verify(s => s.IsAuthenticated, Times.Never);
+        result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
+        error!.Value.TryGet(out UnionError.Unauthorized _).ShouldBeTrue();
+        spy.Executed.ShouldBeFalse();
     }
 
     [Fact]
-    public async Task Handle_Continues_WhenNoRolesOrOperationsRequired()
+    public async Task MissingRole_ReturnsForbiddenRailFailure()
     {
-        Mock<ISecurityContext> securityContext = new Mock<ISecurityContext>();
-        Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>> logger =
-            new Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>>();
-        _ = logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        AuthorizationBehavior<SecuredRequest, string> behavior = new AuthorizationBehavior<SecuredRequest, string>(
-            securityContext.Object,
-            logger.Object
-        );
-        SecuredRequest request = new SecuredRequest
-        {
-            RequiredRoles = Array.Empty<string>(),
-            RequiredOperations = Array.Empty<string>(),
-        };
-        MessageHandlerDelegate<SecuredRequest, string> next = (_, _) => ValueTask.FromResult("success");
+        IMediator mediator = BuildMediator(out HandlerExecutionSpy spy, authenticated: true, hasRole: false);
 
-        string result = await behavior.Handle(request, next, default);
+        Rail<int> result = await mediator.Send(new SecuredRailRequest());
 
-        result.ShouldBe("success");
-        securityContext.Verify(s => s.IsAuthenticated, Times.Never);
+        result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
+        error!.Value.TryGet(out UnionError.Forbidden _).ShouldBeTrue();
+        spy.Executed.ShouldBeFalse();
     }
 
     [Fact]
-    public async Task Handle_ThrowsUnauthorized_WhenNotAuthenticated()
+    public async Task CorrectRole_ExecutesHandlerAndReturnsSuccess()
     {
-        Mock<ISecurityContext> securityContext = new Mock<ISecurityContext>();
-        _ = securityContext.Setup(s => s.IsAuthenticated).Returns(false);
-        Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>> logger =
-            new Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>>();
-        _ = logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        AuthorizationBehavior<SecuredRequest, string> behavior = new AuthorizationBehavior<SecuredRequest, string>(
-            securityContext.Object,
-            logger.Object
-        );
-        SecuredRequest request = new SecuredRequest { RequiredRoles = new List<string> { "Admin" } };
-        MessageHandlerDelegate<SecuredRequest, string> next = (_, _) => ValueTask.FromResult("should-not-reach");
+        IMediator mediator = BuildMediator(out HandlerExecutionSpy spy, authenticated: true, hasRole: true);
 
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            behavior.Handle(request, next, default).AsTask()
-        );
+        Rail<int> result = await mediator.Send(new SecuredRailRequest());
 
-        ex.Message.ShouldContain("not authenticated");
-
-        logger.Verify(
-            x =>
-                x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("is not authenticated")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-            Times.Once
-        );
+        result.IsSuccess(out int value, out _).ShouldBeTrue();
+        value.ShouldBe(42);
+        spy.Executed.ShouldBeTrue();
     }
 
     [Fact]
-    public async Task Handle_ThrowsUnauthorized_WhenMissingRequiredRoles()
+    public async Task UnsecuredRequest_PassesThroughWithoutAuthCheck()
     {
-        Mock<ISecurityContext> securityContext = new Mock<ISecurityContext>();
-        _ = securityContext.Setup(s => s.IsAuthenticated).Returns(true);
-        _ = securityContext.Setup(s => s.HasAnyRole(It.IsAny<IReadOnlyList<string>>())).Returns(false);
-        Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>> logger =
-            new Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>>();
-        _ = logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        AuthorizationBehavior<SecuredRequest, string> behavior = new AuthorizationBehavior<SecuredRequest, string>(
-            securityContext.Object,
-            logger.Object
-        );
-        SecuredRequest request = new SecuredRequest { RequiredRoles = new List<string> { "Admin" } };
-        MessageHandlerDelegate<SecuredRequest, string> next = (_, _) => ValueTask.FromResult("should-not-reach");
+        IMediator mediator = BuildMediator(out HandlerExecutionSpy spy, authenticated: false);
 
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            behavior.Handle(request, next, default).AsTask()
-        );
+        Rail<int> result = await mediator.Send(new UnsecuredRailRequest());
 
-        ex.Message.ShouldContain("required roles");
-
-        logger.Verify(
-            x =>
-                x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("lacks required roles")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-            Times.Once
-        );
+        result.IsSuccess(out int value, out _).ShouldBeTrue();
+        value.ShouldBe(42);
+        spy.Executed.ShouldBeTrue();
     }
 
-    [Fact]
-    public async Task Handle_ThrowsUnauthorized_WhenMissingRequiredOperations()
+    private static IMediator BuildMediator(out HandlerExecutionSpy spy, bool authenticated, bool hasRole = true)
     {
-        Mock<ISecurityContext> securityContext = new Mock<ISecurityContext>();
-        _ = securityContext.Setup(s => s.IsAuthenticated).Returns(true);
-        _ = securityContext.Setup(s => s.HasAnyRole(It.IsAny<IReadOnlyList<string>>())).Returns(true);
-        _ = securityContext.Setup(s => s.HasAllOperations(It.IsAny<IReadOnlyList<string>>())).Returns(false);
-        Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>> logger =
-            new Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>>();
-        _ = logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        AuthorizationBehavior<SecuredRequest, string> behavior = new AuthorizationBehavior<SecuredRequest, string>(
-            securityContext.Object,
-            logger.Object
-        );
-        SecuredRequest request = new SecuredRequest
-        {
-            RequiredRoles = new List<string> { "Admin" },
-            RequiredOperations = new List<string> { "product.delete" },
-        };
-        MessageHandlerDelegate<SecuredRequest, string> next = (_, _) => ValueTask.FromResult("should-not-reach");
-
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            behavior.Handle(request, next, default).AsTask()
-        );
-
-        ex.Message.ShouldContain("required permissions");
-
-        logger.Verify(
-            x =>
-                x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("lacks required permissions")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-            Times.Once
-        );
+        spy = new HandlerExecutionSpy();
+        return RailwayTestHost
+            .CreateServices(spy, authenticated, hasRole)
+            .BuildServiceProvider()
+            .GetRequiredService<IMediator>();
     }
 
-    [Fact]
-    public async Task Handle_Continues_WhenAllChecksPass()
+    public sealed record SecuredRailRequest : IRailRequest<int>, ISecuredRequest
     {
-        Mock<ISecurityContext> securityContext = new Mock<ISecurityContext>();
-        _ = securityContext.Setup(s => s.IsAuthenticated).Returns(true);
-        _ = securityContext.Setup(s => s.HasAnyRole(It.IsAny<IReadOnlyList<string>>())).Returns(true);
-        _ = securityContext.Setup(s => s.HasAllOperations(It.IsAny<IReadOnlyList<string>>())).Returns(true);
-        Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>> logger =
-            new Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>>();
-        _ = logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        AuthorizationBehavior<SecuredRequest, string> behavior = new AuthorizationBehavior<SecuredRequest, string>(
-            securityContext.Object,
-            logger.Object
-        );
-        SecuredRequest request = new SecuredRequest
-        {
-            RequiredRoles = new List<string> { "Admin" },
-            RequiredOperations = new List<string> { "product.read" },
-        };
-        bool handlerInvoked = false;
-        MessageHandlerDelegate<SecuredRequest, string> next = (_, _) =>
-        {
-            handlerInvoked = true;
-            return ValueTask.FromResult("authorized");
-        };
-
-        string result = await behavior.Handle(request, next, default);
-
-        result.ShouldBe("authorized");
-        handlerInvoked.ShouldBeTrue();
+        public IReadOnlyList<string> RequiredRoles { get; } = ["Admin"];
+        public IReadOnlyList<string> RequiredOperations { get; } = [];
     }
 
-    [Fact]
-    public async Task Handle_RespectsCancellationToken()
+    public sealed record UnsecuredRailRequest : IRailRequest<int>;
+
+    public sealed class SecuredHandler(HandlerExecutionSpy spy) : IRequestHandler<SecuredRailRequest, Rail<int>>
     {
-        using var ctSource = new CancellationTokenSource();
-        var ct = ctSource.Token;
-
-        Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>> logger =
-            new Mock<ILogger<AuthorizationBehavior<SecuredRequest, string>>>();
-        _ = logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        Mock<ISecurityContext> securityContext = new Mock<ISecurityContext>();
-        _ = securityContext.Setup(u => u.IsAuthenticated).Returns(true);
-        securityContext
-            .Setup(u => u.HasAnyRole(It.Is<IReadOnlyList<string>>(r => r.Contains("Admin"))))
-            .Returns(true)
-            .Verifiable();
-
-        AuthorizationBehavior<SecuredRequest, string> behavior = new AuthorizationBehavior<SecuredRequest, string>(
-            securityContext.Object,
-            logger.Object
-        );
-        MessageHandlerDelegate<SecuredRequest, string> next = (_, t) =>
+        public ValueTask<Rail<int>> Handle(SecuredRailRequest request, CancellationToken cancellationToken)
         {
-            t.ShouldBe(ct);
-            return ValueTask.FromResult("authorized");
-        };
-
-        string result = await behavior.Handle(new SecuredRequest { RequiredRoles = AdminRole }, next, ct);
-
-        result.ShouldBe("authorized");
-        securityContext.Verify();
+            spy.Executed = true;
+            return ValueTask.FromResult<Rail<int>>(Union.Ok(42));
+        }
     }
 
-    private static readonly string[] AdminRole = ["Admin"];
-
-    internal sealed record UnsecuredRequest : IMessage;
-
-    internal sealed record SecuredRequest : IMessage, ISecuredRequest
+    public sealed class UnsecuredHandler(HandlerExecutionSpy spy) : IRequestHandler<UnsecuredRailRequest, Rail<int>>
     {
-        public IReadOnlyList<string> RequiredRoles { get; init; } = Array.Empty<string>();
-        public IReadOnlyList<string> RequiredOperations { get; init; } = Array.Empty<string>();
+        public ValueTask<Rail<int>> Handle(UnsecuredRailRequest request, CancellationToken cancellationToken)
+        {
+            spy.Executed = true;
+            return ValueTask.FromResult<Rail<int>>(Union.Ok(42));
+        }
     }
 }

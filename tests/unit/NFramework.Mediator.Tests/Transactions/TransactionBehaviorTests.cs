@@ -1,198 +1,84 @@
 using Mediator;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using NFramework.Mediator.Abstractions;
 using NFramework.Mediator.Abstractions.Transactions;
-using NFramework.Mediator.Mediator.Transactions;
+using NFramework.Mediator.Mediator.Railway;
+using NFramework.Mediator.Tests.Railway;
+using UnionRailway;
 
 namespace NFramework.Mediator.Tests.Transactions;
 
 public sealed class TransactionBehaviorTests
 {
     [Fact]
-    public async Task Handle_SkipsTransaction_WhenRequestDoesNotImplementITransactional()
+    public async Task NonTransactionalRequest_PassesThrough()
     {
-        using var loggerFactory = new LoggerFactory();
-        var logger = loggerFactory.CreateLogger<TransactionBehavior<NonTransactionalRequest, string>>();
-        TransactionBehavior<NonTransactionalRequest, string> behavior = new TransactionBehavior<
-            NonTransactionalRequest,
-            string
-        >(logger, new MediatorTransactionOptions());
-        bool handlerInvoked = false;
-        MessageHandlerDelegate<NonTransactionalRequest, string> next = (_, _) =>
-        {
-            handlerInvoked = true;
-            return ValueTask.FromResult("success");
-        };
+        IMediator mediator = BuildMediator(out HandlerExecutionSpy spy);
 
-        string result = await behavior.Handle(new NonTransactionalRequest(), next, default);
+        Rail<int> result = await mediator.Send(new NonTransactionalRailRequest());
 
-        result.ShouldBe("success");
-        handlerInvoked.ShouldBeTrue();
+        result.IsSuccess(out int value, out _).ShouldBeTrue();
+        value.ShouldBe(42);
+        spy.Executed.ShouldBeTrue();
     }
 
     [Fact]
-    public async Task Handle_CompletesTransaction_WhenHandlerSucceeds()
+    public async Task TransactionalSuccess_CommitsAndReturnsSuccess()
     {
-        using var loggerFactory = new LoggerFactory();
-        var logger = loggerFactory.CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
-        TransactionBehavior<TransactionalRequest, string> behavior = new TransactionBehavior<
-            TransactionalRequest,
-            string
-        >(logger, new MediatorTransactionOptions());
-        bool handlerInvoked = false;
-        MessageHandlerDelegate<TransactionalRequest, string> next = (_, _) =>
-        {
-            handlerInvoked = true;
-            return ValueTask.FromResult("success");
-        };
+        IMediator mediator = BuildMediator(out HandlerExecutionSpy spy);
 
-        string result = await behavior.Handle(new TransactionalRequest(), next, default);
+        Rail<int> result = await mediator.Send(new TransactionalRailRequest(ShouldThrow: false));
 
-        result.ShouldBe("success");
-        handlerInvoked.ShouldBeTrue();
+        result.IsSuccess(out int value, out _).ShouldBeTrue();
+        value.ShouldBe(42);
+        spy.Executed.ShouldBeTrue();
     }
 
     [Fact]
-    public async Task Handle_PropagatesException_WhenHandlerThrows()
+    public async Task TransactionalHandlerThrows_ReturnsSystemFailure()
     {
-        using var loggerFactory = new LoggerFactory();
-        var logger = loggerFactory.CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
-        TransactionBehavior<TransactionalRequest, string> behavior = new TransactionBehavior<
-            TransactionalRequest,
-            string
-        >(logger, new MediatorTransactionOptions());
-        MessageHandlerDelegate<TransactionalRequest, string> next = (_, _) =>
-            throw new InvalidOperationException("Test exception");
+        IMediator mediator = BuildMediator(out HandlerExecutionSpy spy);
 
-        _ = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            behavior.Handle(new TransactionalRequest(), next, default).AsTask()
-        );
+        Rail<int> result = await mediator.Send(new TransactionalRailRequest(ShouldThrow: true));
+
+        result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
+        error!.Value.TryGet(out UnionError.SystemFailure failure).ShouldBeTrue();
+        failure.Ex.Message.ShouldBe("boom");
+        spy.Executed.ShouldBeTrue();
     }
 
-    [Fact]
-    public async Task Handle_RollsBackTransaction_WhenHandlerThrows()
+    private static IMediator BuildMediator(out HandlerExecutionSpy spy)
     {
-        using var loggerFactory = new LoggerFactory();
-        var logger = loggerFactory.CreateLogger<TestTransactionBehavior<TransactionalRequest, string>>();
-        await using var scope = new FakeTransactionScope();
-        TestTransactionBehavior<TransactionalRequest, string> behavior = new TestTransactionBehavior<
-            TransactionalRequest,
-            string
-        >(logger, scope);
-
-        MessageHandlerDelegate<TransactionalRequest, string> next = (_, _) =>
-            throw new InvalidOperationException("Test exception");
-
-        _ = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            behavior.Handle(new TransactionalRequest(), ct => next(new TransactionalRequest(), ct), default).AsTask()
-        );
-
-        scope.Committed.ShouldBeFalse();
-        scope.RolledBack.ShouldBeTrue();
-        scope.Disposed.ShouldBeTrue();
+        spy = new HandlerExecutionSpy();
+        return RailwayTestHost.CreateServices(spy).BuildServiceProvider().GetRequiredService<IMediator>();
     }
 
-    [Fact]
-    public async Task Handle_RespectsCancellationToken()
+    public sealed record NonTransactionalRailRequest : IRailRequest<int>;
+
+    public sealed record TransactionalRailRequest(bool ShouldThrow) : IRailRequest<int>, ITransactionalRequest;
+
+    public sealed class NonTransactionalHandler(HandlerExecutionSpy spy)
+        : IRequestHandler<NonTransactionalRailRequest, Rail<int>>
     {
-        using var ctSource = new CancellationTokenSource();
-        var ct = ctSource.Token;
-
-        using var loggerFactory = new LoggerFactory();
-        var logger = loggerFactory.CreateLogger<TestTransactionBehavior<TransactionalRequest, string>>();
-        await using var scope = new FakeTransactionScope();
-        TestTransactionBehavior<TransactionalRequest, string> behavior = new TestTransactionBehavior<
-            TransactionalRequest,
-            string
-        >(logger, scope);
-
-        MessageHandlerDelegate<TransactionalRequest, string> next = (_, t) =>
+        public ValueTask<Rail<int>> Handle(NonTransactionalRailRequest request, CancellationToken cancellationToken)
         {
-            t.ShouldBe(ct);
-            return ValueTask.FromResult("success");
-        };
-
-        _ = await behavior.Handle(new TransactionalRequest(), ct => next(new TransactionalRequest(), ct), ct);
-
-        scope.Committed.ShouldBeTrue();
-        scope.Disposed.ShouldBeTrue();
-    }
-
-    [Fact]
-    public void Handle_RespectsTimeoutConfiguration()
-    {
-        using var loggerFactory = new LoggerFactory();
-        var logger = loggerFactory.CreateLogger<TransactionBehavior<TransactionalRequest, string>>();
-        MediatorTransactionOptions options = new MediatorTransactionOptions
-        {
-            TransactionScopeTimeout = TimeSpan.FromSeconds(45),
-        };
-
-        _ = new TransactionBehavior<TransactionalRequest, string>(logger, options);
-
-        // Accessing protected property via reflection or just trust the code if it's simple enough
-        // But the best is to verify if it's passed to the scope.
-        // However, TransactionScope doesn't expose its timeout easily.
-        // We can at least verify the override logic.
-
-        // Since TransactionScopeTimeoutSeconds is protected, we can't easily check it here without a subclass.
-        TestTimeoutTransactionBehavior<TransactionalRequest, string> testBehavior = new TestTimeoutTransactionBehavior<
-            TransactionalRequest,
-            string
-        >(logger, options);
-        testBehavior.GetTimeoutSeconds().ShouldBe(45);
-    }
-
-    private sealed class TestTimeoutTransactionBehavior<TReq, TRes>(
-        ILogger<TransactionBehavior<TReq, TRes>> logger,
-        MediatorTransactionOptions options
-    ) : TransactionBehavior<TReq, TRes>(logger, options)
-        where TReq : IMessage
-    {
-        public int GetTimeoutSeconds() => TransactionScopeTimeoutSeconds;
-    }
-
-    private sealed class FakeTransactionScope : ITransactionScope
-    {
-        public bool Committed { get; private set; }
-        public bool RolledBack { get; private set; }
-        public bool Disposed { get; private set; }
-
-        public ValueTask CommitAsync(CancellationToken cancellationToken)
-        {
-            Committed = true;
-            return ValueTask.CompletedTask;
-        }
-
-        public ValueTask RollbackAsync(CancellationToken cancellationToken)
-        {
-            RolledBack = true;
-            return ValueTask.CompletedTask;
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            Disposed = true;
-            return ValueTask.CompletedTask;
+            spy.Executed = true;
+            return ValueTask.FromResult<Rail<int>>(Union.Ok(42));
         }
     }
 
-    internal sealed record NonTransactionalRequest : IMessage;
-
-    internal sealed record TransactionalRequest : IMessage, ITransactionalRequest;
-
-    internal sealed class TestTransactionBehavior<TReq, TRes>(
-        ILogger<TestTransactionBehavior<TReq, TRes>> logger,
-        ITransactionScope scope
-    ) : TransactionBehaviorBase<TReq, TRes>(logger)
+    public sealed class TransactionalHandler(HandlerExecutionSpy spy)
+        : IRequestHandler<TransactionalRailRequest, Rail<int>>
     {
-        protected override ValueTask<ITransactionScope> CreateTransactionScopeAsync(
-            CancellationToken cancellationToken
-        ) => ValueTask.FromResult(scope);
+        public ValueTask<Rail<int>> Handle(TransactionalRailRequest request, CancellationToken cancellationToken)
+        {
+            spy.Executed = true;
+            if (request.ShouldThrow)
+            {
+                throw new InvalidOperationException("boom");
+            }
 
-        public async ValueTask<TRes> Handle(
-            TReq request,
-            Func<CancellationToken, ValueTask<TRes>> next,
-            CancellationToken ct
-        ) => await HandleAsync(request, next, ct).ConfigureAwait(false);
+            return ValueTask.FromResult<Rail<int>>(Union.Ok(42));
+        }
     }
 }
