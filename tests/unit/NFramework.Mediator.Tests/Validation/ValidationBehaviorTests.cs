@@ -1,12 +1,12 @@
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
+using NFramework.Mediator.Abstractions;
 using NFramework.Mediator.Abstractions.Authorization;
 using NFramework.Mediator.Abstractions.Validation;
 using NFramework.Mediator.Mediator.Railway;
 using NFramework.Mediator.Mediator.Transactions;
-using UnionRailway;
-using NFramework.Mediator.Abstractions;
 using NFramework.Mediator.Tests.Railway;
+using UnionRailway;
 
 namespace NFramework.Mediator.Tests.Validation;
 

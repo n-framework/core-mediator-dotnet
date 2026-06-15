@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using NFramework.Mediator.Mediator.Railway;
 using NFramework.Mediator.Abstractions.Authorization;
+using NFramework.Mediator.Mediator.Railway;
 using NFramework.Mediator.Mediator.Transactions;
 
 namespace NFramework.Mediator.Tests.Railway;

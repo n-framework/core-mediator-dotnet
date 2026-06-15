@@ -17,19 +17,17 @@ public sealed class TransactionBehavior<TRequest, TValue>(
 ) : IPipelineBehavior<TRequest, Rail<TValue>>
     where TRequest : IRailRequest<TValue>
 {
-    private static readonly Action<ILogger, string, Exception?> LogTransactionError =
-        LoggerMessage.Define<string>(
-            LogLevel.Error,
-            new EventId(1, nameof(Handle)),
-            "Transaction error occurred for request: {RequestName}"
-        );
+    private static readonly Action<ILogger, string, Exception?> LogTransactionError = LoggerMessage.Define<string>(
+        LogLevel.Error,
+        new EventId(1, nameof(Handle)),
+        "Transaction error occurred for request: {RequestName}"
+    );
 
-    private static readonly Action<ILogger, string, Exception?> LogRollbackError =
-        LoggerMessage.Define<string>(
-            LogLevel.Error,
-            new EventId(2, nameof(Handle)),
-            "Failed to rollback transaction for request: {RequestName}"
-        );
+    private static readonly Action<ILogger, string, Exception?> LogRollbackError = LoggerMessage.Define<string>(
+        LogLevel.Error,
+        new EventId(2, nameof(Handle)),
+        "Failed to rollback transaction for request: {RequestName}"
+    );
 
     /// <inheritdoc />
     public async ValueTask<Rail<TValue>> Handle(

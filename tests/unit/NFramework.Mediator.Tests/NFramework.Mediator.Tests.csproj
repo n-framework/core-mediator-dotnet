@@ -29,7 +29,10 @@
     <ProjectReference Include="..\..\..\src\NFramework.Mediator.Mediator\NFramework.Mediator.Mediator.csproj" />
     <ProjectReference Include="..\..\..\src\NFramework.Mediator.Abstractions\NFramework.Mediator.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\src\NFramework.Mediator.Mediator.Validation.FluentValidation\NFramework.Mediator.Mediator.Validation.FluentValidation.csproj" />
-    <ProjectReference Include="..\..\..\src\NFramework.Mediator.Mediator.Generators\NFramework.Mediator.Mediator.Generators.csproj"
-                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference
+      Include="..\..\..\src\NFramework.Mediator.Mediator.Generators\NFramework.Mediator.Mediator.Generators.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
   </ItemGroup>
 </Project>

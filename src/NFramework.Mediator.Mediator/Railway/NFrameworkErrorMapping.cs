@@ -56,9 +56,7 @@ public static class NFrameworkErrorMapping
         errors
             .Where(error => error is not null)
             .GroupBy(error =>
-                string.IsNullOrWhiteSpace(error.PropertyName)
-                    ? UnscopedValidationKey
-                    : error.PropertyName
+                string.IsNullOrWhiteSpace(error.PropertyName) ? UnscopedValidationKey : error.PropertyName
             )
             .ToDictionary(group => group.Key, group => group.Select(error => error.Message).ToArray());
 

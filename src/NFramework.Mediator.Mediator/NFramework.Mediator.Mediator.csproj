@@ -26,9 +26,12 @@
       WITHOUT activating it as an analyzer here (this package declares no IRailRequest types, so
       self-running it would emit an empty registration class that collides with the consumer's).
     -->
-    <ProjectReference Include="..\NFramework.Mediator.Mediator.Generators\NFramework.Mediator.Mediator.Generators.csproj"
-                      ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true"
-                      PrivateAssets="all" />
+    <ProjectReference
+      Include="..\NFramework.Mediator.Mediator.Generators\NFramework.Mediator.Mediator.Generators.csproj"
+      ReferenceOutputAssembly="false"
+      SkipGetTargetFrameworkProperties="true"
+      PrivateAssets="all"
+    />
   </ItemGroup>
 
   <!--
@@ -39,7 +42,13 @@
   <Target Name="IncludeRailwayGeneratorInPackage" BeforeTargets="GenerateNuspec">
     <ItemGroup>
       <_RailwayGeneratorDll Include="..\NFramework.Mediator.Mediator.Generators\bin\$(Configuration)\netstandard2.0\NFramework.Mediator.Mediator.Generators.dll" />
-      <None Include="@(_RailwayGeneratorDll)" Condition="Exists('%(FullPath)')" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None
+        Include="@(_RailwayGeneratorDll)"
+        Condition="Exists('%(FullPath)')"
+        Pack="true"
+        PackagePath="analyzers/dotnet/cs"
+        Visible="false"
+      />
     </ItemGroup>
   </Target>
 </Project>

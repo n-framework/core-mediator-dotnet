@@ -16,12 +16,11 @@ public sealed class AuthorizationBehavior<TRequest, TValue>(
 ) : IPipelineBehavior<TRequest, Rail<TValue>>
     where TRequest : IRailRequest<TValue>
 {
-    private static readonly Action<ILogger, string, Exception?> LogUserNotAuthenticated =
-        LoggerMessage.Define<string>(
-            LogLevel.Warning,
-            new EventId(1, nameof(Handle)),
-            "Authorization failed: User is not authenticated for request {RequestName}"
-        );
+    private static readonly Action<ILogger, string, Exception?> LogUserNotAuthenticated = LoggerMessage.Define<string>(
+        LogLevel.Warning,
+        new EventId(1, nameof(Handle)),
+        "Authorization failed: User is not authenticated for request {RequestName}"
+    );
 
     private static readonly Action<ILogger, string, string, Exception?> LogUserLacksRequiredRoles =
         LoggerMessage.Define<string, string>(

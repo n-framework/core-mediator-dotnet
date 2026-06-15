@@ -2,8 +2,8 @@ using Mediator;
 using Microsoft.Extensions.Logging;
 using NFramework.Mediator.Abstractions;
 using NFramework.Mediator.Abstractions.Validation;
-using UnionRailway;
 using NFramework.Mediator.Mediator.Railway;
+using UnionRailway;
 
 namespace NFramework.Mediator.Mediator.Validation;
 
@@ -48,7 +48,10 @@ public sealed class ValidationBehavior<TRequest, TValue>(
             )
             .ConfigureAwait(false);
 
-        List<IValidationError> failures = [.. validationResults.SelectMany(result => result).Where(failure => failure != null)];
+        List<IValidationError> failures =
+        [
+            .. validationResults.SelectMany(result => result).Where(failure => failure != null),
+        ];
 
         if (failures.Count == 0)
         {
