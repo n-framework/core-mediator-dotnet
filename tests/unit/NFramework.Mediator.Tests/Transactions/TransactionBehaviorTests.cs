@@ -2,9 +2,10 @@ using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using NFramework.Mediator.Abstractions;
 using NFramework.Mediator.Abstractions.Transactions;
-using NFramework.Mediator.Mediator.Railway;
 using NFramework.Mediator.Tests.Railway;
 using UnionRailway;
+
+#pragma warning disable CS8600, CS8601 // Test assertions guarantee non-null values after ShouldBeTrue()
 
 namespace NFramework.Mediator.Tests.Transactions;
 
@@ -53,11 +54,11 @@ public sealed class TransactionBehaviorTests
         return RailwayTestHost.CreateServices(spy).BuildServiceProvider().GetRequiredService<IMediator>();
     }
 
-    public sealed record NonTransactionalRailRequest : IRailRequest<int>;
+    internal sealed record NonTransactionalRailRequest : IRailRequest<int>;
 
-    public sealed record TransactionalRailRequest(bool ShouldThrow) : IRailRequest<int>, ITransactionalRequest;
+    internal sealed record TransactionalRailRequest(bool ShouldThrow) : IRailRequest<int>, ITransactionalRequest;
 
-    public sealed class NonTransactionalHandler(HandlerExecutionSpy spy)
+    internal sealed class NonTransactionalHandler(HandlerExecutionSpy spy)
         : IRequestHandler<NonTransactionalRailRequest, Rail<int>>
     {
         public ValueTask<Rail<int>> Handle(NonTransactionalRailRequest request, CancellationToken cancellationToken)
@@ -67,7 +68,7 @@ public sealed class TransactionBehaviorTests
         }
     }
 
-    public sealed class TransactionalHandler(HandlerExecutionSpy spy)
+    internal sealed class TransactionalHandler(HandlerExecutionSpy spy)
         : IRequestHandler<TransactionalRailRequest, Rail<int>>
     {
         public ValueTask<Rail<int>> Handle(TransactionalRailRequest request, CancellationToken cancellationToken)

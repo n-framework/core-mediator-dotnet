@@ -43,7 +43,7 @@ public sealed class TransactionBehavior<TRequest, TValue>(
             return await next(request, cancellationToken).ConfigureAwait(false);
         }
 
-        var transactionScope = CreateTransactionScope();
+        var transactionScope = createTransactionScope();
         await using (transactionScope.ConfigureAwait(false))
         {
             try
@@ -73,7 +73,7 @@ public sealed class TransactionBehavior<TRequest, TValue>(
         }
     }
 
-    private SystemTransactionScope CreateTransactionScope()
+    private SystemTransactionScope createTransactionScope()
     {
 #pragma warning disable CA2000 // Ownership transferred to caller via await using
         var scope = new TransactionScope(

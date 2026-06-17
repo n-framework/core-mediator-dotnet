@@ -2,7 +2,9 @@ using NFramework.Mediator.Abstractions.Validation;
 using NFramework.Mediator.Mediator.Railway;
 using UnionRailway;
 
-namespace NFramework.Mediator.Tests;
+#pragma warning disable CS8600, CS8601 // Test assertions guarantee non-null values after ShouldBeTrue()
+
+namespace NFramework.Mediator.Tests.Railway;
 
 public sealed class NFrameworkErrorMappingTests
 {
@@ -106,5 +108,14 @@ public sealed class NFrameworkErrorMappingTests
     /// Mirrors the persistence package's exception type by name only, so the mapping's
     /// name-based concurrency detection can be exercised without a persistence dependency.
     /// </summary>
-    private sealed class ConcurrencyConflictException(string message) : Exception(message);
+    private sealed class ConcurrencyConflictException : Exception
+    {
+        public ConcurrencyConflictException() { }
+
+        public ConcurrencyConflictException(string message)
+            : base(message) { }
+
+        public ConcurrencyConflictException(string message, Exception innerException)
+            : base(message, innerException) { }
+    }
 }

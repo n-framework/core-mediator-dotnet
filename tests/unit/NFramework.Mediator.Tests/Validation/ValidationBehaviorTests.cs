@@ -1,12 +1,11 @@
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using NFramework.Mediator.Abstractions;
-using NFramework.Mediator.Abstractions.Authorization;
 using NFramework.Mediator.Abstractions.Validation;
-using NFramework.Mediator.Mediator.Railway;
-using NFramework.Mediator.Mediator.Transactions;
 using NFramework.Mediator.Tests.Railway;
 using UnionRailway;
+
+#pragma warning disable CS8600, CS8601 // Test assertions guarantee non-null values after ShouldBeTrue()
 
 namespace NFramework.Mediator.Tests.Validation;
 
@@ -60,9 +59,9 @@ public sealed class ValidationBehaviorTests
         return services.BuildServiceProvider().GetRequiredService<IMediator>();
     }
 
-    public sealed record CreateThing(string Name) : IRailRequest<int>;
+    internal sealed record CreateThing(string Name) : IRailRequest<int>;
 
-    public sealed class CreateThingHandler(HandlerExecutionSpy spy) : IRequestHandler<CreateThing, Rail<int>>
+    internal sealed class CreateThingHandler(HandlerExecutionSpy spy) : IRequestHandler<CreateThing, Rail<int>>
     {
         public ValueTask<Rail<int>> Handle(CreateThing request, CancellationToken cancellationToken)
         {

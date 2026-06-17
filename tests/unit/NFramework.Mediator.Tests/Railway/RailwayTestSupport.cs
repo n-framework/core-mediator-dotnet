@@ -34,7 +34,7 @@ internal static class RailwayTestHost
 /// martinothamar's <c>AddMediator()</c> registers every handler in the assembly into every
 /// test host, so all handlers must depend on a single, commonly-registered spy type.
 /// </summary>
-public sealed class HandlerExecutionSpy
+internal sealed class HandlerExecutionSpy
 {
     public bool Executed { get; set; }
 }

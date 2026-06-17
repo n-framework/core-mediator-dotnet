@@ -2,9 +2,10 @@ using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using NFramework.Mediator.Abstractions;
 using NFramework.Mediator.Abstractions.Authorization;
-using NFramework.Mediator.Mediator.Railway;
 using NFramework.Mediator.Tests.Railway;
 using UnionRailway;
+
+#pragma warning disable CS8601 // Test assertions guarantee non-null values after ShouldBeTrue()
 
 namespace NFramework.Mediator.Tests.Authorization;
 
@@ -67,15 +68,15 @@ public sealed class AuthorizationBehaviorTests
             .GetRequiredService<IMediator>();
     }
 
-    public sealed record SecuredRailRequest : IRailRequest<int>, ISecuredRequest
+    internal sealed record SecuredRailRequest : IRailRequest<int>, ISecuredRequest
     {
         public IReadOnlyList<string> RequiredRoles { get; } = ["Admin"];
         public IReadOnlyList<string> RequiredOperations { get; } = [];
     }
 
-    public sealed record UnsecuredRailRequest : IRailRequest<int>;
+    internal sealed record UnsecuredRailRequest : IRailRequest<int>;
 
-    public sealed class SecuredHandler(HandlerExecutionSpy spy) : IRequestHandler<SecuredRailRequest, Rail<int>>
+    internal sealed class SecuredHandler(HandlerExecutionSpy spy) : IRequestHandler<SecuredRailRequest, Rail<int>>
     {
         public ValueTask<Rail<int>> Handle(SecuredRailRequest request, CancellationToken cancellationToken)
         {
@@ -84,7 +85,7 @@ public sealed class AuthorizationBehaviorTests
         }
     }
 
-    public sealed class UnsecuredHandler(HandlerExecutionSpy spy) : IRequestHandler<UnsecuredRailRequest, Rail<int>>
+    internal sealed class UnsecuredHandler(HandlerExecutionSpy spy) : IRequestHandler<UnsecuredRailRequest, Rail<int>>
     {
         public ValueTask<Rail<int>> Handle(UnsecuredRailRequest request, CancellationToken cancellationToken)
         {

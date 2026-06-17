@@ -19,7 +19,7 @@ public sealed class ValidationBehavior<TRequest, TValue>(
 ) : IPipelineBehavior<TRequest, Rail<TValue>>
     where TRequest : IRailRequest<TValue>
 {
-    private readonly IReadOnlyList<IValidator<TRequest>> _validators = validators.ToList();
+    private readonly List<IValidator<TRequest>> _validators = [.. validators];
     private readonly ILogger<ValidationBehavior<TRequest, TValue>> _logger = logger;
 
     private static readonly Action<ILogger, string, string, Exception?> LogValidationFailureAction =
